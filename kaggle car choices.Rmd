@@ -7,24 +7,47 @@ setwd("/Users/fendylieanata/Dropbox/ESD_Term 8/40.220 Analytics Edge/kaggle")
 #git add ., git commit -m "msg", git push, git pull
 train <- read.csv("train.csv")
 test <- read.csv("test.csv")
-str(traindata)
-str(testdata)
+
 library(mlogit)
+
 traindata <- mlogit.data(train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
-testdata <- mlogit.data(test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
 str(traindata)
+
 grep("Ch1", colnames(traindata))
 grep("Ch2", colnames(traindata))
 grep("Ch3", colnames(traindata))
 grep("Ch4", colnames(traindata))
 grep("chid", colnames(traindata))
-traindatanew <- subset(traindata, select = - c(15,16,17,18,41))
+grep("alt", colnames(traindata))
 
-lmodel <- lm(Choice ~., data = traindatanew)
+traindatanew <- subset(traindata, select = - c(1,2,3,15,16,17,18,20,41))
 
-logloss2<- -(sum(lmodel_log*train[,95:98]))/N
-logloss2
-summary(lmodel)
+str(traindatanew)
+
+traindatanew$CC <- factor(traindatanew$CC)
+traindatanew$GN <- factor(traindatanew$GN)
+traindatanew$NS <- factor(traindatanew$NS)
+traindatanew$BU <- factor(traindatanew$BU)
+traindatanew$FA <- factor(traindatanew$FA)
+traindatanew$LD <- factor(traindatanew$LD)
+traindatanew$BZ <- factor(traindatanew$BZ)
+traindatanew$FC <- factor(traindatanew$FC)
+traindatanew$FP <- factor(traindatanew$FP)
+traindatanew$RP <- factor(traindatanew$RP)
+traindatanew$PP <- factor(traindatanew$PP)
+traindatanew$KA <- factor(traindatanew$KA)
+traindatanew$SC <- factor(traindatanew$SC)
+traindatanew$TS <- factor(traindatanew$TS)
+traindatanew$NV <- factor(traindatanew$NV)
+traindatanew$MA <- factor(traindatanew$MA)
+traindatanew$LB <- factor(traindatanew$LB)
+traindatanew$AF <- factor(traindatanew$AF)
+traindatanew$HU <- factor(traindatanew$HU)
+traindatanew$Price <- factor(traindatanew$Price)
+traindatanew$year <- factor(traindatanew$year)
+traindatanew$Choice <- factor(ifelse(traindatanew$Choice == TRUE, 1, 0))
+str(traindatanew)
 ```
 
 ```{r}
@@ -49,5 +72,32 @@ predictmodel2 <- model1$fitted.values
 predictmodel2_log <- log(predictmodel2)
 logloss2<- -(sum(predictmodel2_log*train[,95:98]))/N
 logloss2
+```
+
+### C5.0
+```{r}
+library(C50)
+C50model1 <- C5.0(Choice ~ ., data = traindatanew)
+C5imp(C50model1)
+predC50 <- predict.C5.0(C50model1, newdata = traindatanew, type = "prob")
+N <- nrow(train)
+predC50Matrix<-matrix(predC50[,2],nrow=N,ncol=4,byrow=TRUE)
+predC50Matrix_log <- log(predC50Matrix)
+logloss<- -(sum(predC50Matrix_log*train[,95:98]))/N
+logloss
+
+C50model2 <- C5.0(Choice ~ ., data = traindatanew, control = C5.0Control(winnow = TRUE))
+predC50 <- predict.C5.0(C50model2, newdata = traindatanew, type = "prob")
+N <- nrow(train)
+predC50Matrix<-matrix(predC50[,2],nrow=N,ncol=4,byrow=TRUE)
+predC50Matrix_log <- log(predC50Matrix)
+logloss<- -(sum(predC50Matrix_log*train[,95:98]))/N
+logloss
+```
+
+### Random Forest
+```{r}
+library(randomForest)
+
 ```
 
