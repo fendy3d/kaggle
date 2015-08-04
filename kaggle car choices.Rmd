@@ -6,12 +6,8 @@ setwd("/Users/fendylieanata/Dropbox/ESD_Term 8/40.220 Analytics Edge/kaggle")
 ```{r}
 #git add ., git commit -m "msg", git push, git pull
 train <- read.csv("train.csv")
-test <- read.csv("test.csv")
-
-library(mlogit)
 
 traindata <- mlogit.data(train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
-
 str(traindata)
 
 grep("Ch1", colnames(traindata))
@@ -47,12 +43,64 @@ traindatanew$HU <- factor(traindatanew$HU)
 traindatanew$Price <- factor(traindatanew$Price)
 traindatanew$year <- factor(traindatanew$year)
 traindatanew$Choice <- factor(ifelse(traindatanew$Choice == TRUE, 1, 0))
+
+#traindatanew$income <- ifelse(traindatanew$income == "Under $29,999", 1, ifelse(traindatanew$income == "$30,000 to $39,999", 2, ifelse(traindatanew$income =="$40,000 to $49,999", 3, ifelse(traindatanew$income =="$50,000 to $59,999", 4, ifelse(traindatanew$income =="$60,000 to $69,999", 5, ifelse(traindatanew$income =="$70,000 to $79,999", 6, ifelse(traindatanew$income =="$80,000 to $89,999", 7, ifelse(traindatanew$income =="$90,000 to $99,999", 8, ifelse(traindatanew$income =="$100,000 to $109,999", 9, ifelse(traindatanew$income == "$110,000 to $119,999", 10, ifelse(traindatanew$income == "$120,000 to $129,999", 11, ifelse(traindatanew$income == "$130,000 to $139,999", 12, ifelse(traindatanew$income == "$140,000 to $149,999", 13, ifelse(traindatanew$income == "$150,000 to $159,999", 14, ifelse(traindatanew$income == "$160,000 to $169,999", 15, ifelse(traindatanew$income == "$170,000 to $179,999", 16, ifelse(traindatanew$income == "$180,000 to $189,999", 17, ifelse(traindatanew$income == "$190,000 to $199,999", 18, ifelse(traindatanew$income == "$200,000 to $209,999", 19, ifelse(traindatanew$income == "$220,000 to $229,999", 20, ifelse(traindatanew$income == "$230,000 to $239,999", 21, ifelse(traindatanew$income == "$250,000 to $259,999", 22, ifelse(traindatanew$income == "$270,000 to $279,999", 23, ifelse(traindatanew$income == "$300,000 & Over", 24, 0))))))))))))))))))))))))
+
 str(traindatanew)
+
+set.seed(100)
+library(caTools)
+spl <- sample.split(traindatanew$Choice, SplitRatio = 0.6)
+train_train <- subset(traindatanew, spl == TRUE)
+train_test <- subset(traindatanew, spl == FALSE)
 ```
 
+### Test Set
+```{r}
+test <- read.csv("test.csv")
+
+testdata <- mlogit.data(test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+testdatanew <- subset(testdata, select = - c(1,2,3,15,16,17,18,20,41))
+
+testdatanew$CC <- factor(testdatanew$CC)
+testdatanew$GN <- factor(testdatanew$GN)
+testdatanew$NS <- factor(testdatanew$NS)
+testdatanew$BU <- factor(testdatanew$BU)
+testdatanew$FA <- factor(testdatanew$FA)
+testdatanew$LD <- factor(testdatanew$LD)
+testdatanew$BZ <- factor(testdatanew$BZ)
+testdatanew$FC <- factor(testdatanew$FC)
+testdatanew$FP <- factor(testdatanew$FP)
+testdatanew$RP <- factor(testdatanew$RP)
+testdatanew$PP <- factor(testdatanew$PP)
+testdatanew$KA <- factor(testdatanew$KA)
+testdatanew$SC <- factor(testdatanew$SC)
+testdatanew$TS <- factor(testdatanew$TS)
+testdatanew$NV <- factor(testdatanew$NV)
+testdatanew$MA <- factor(testdatanew$MA)
+testdatanew$LB <- factor(testdatanew$LB)
+testdatanew$AF <- factor(testdatanew$AF)
+testdatanew$HU <- factor(testdatanew$HU)
+testdatanew$Price <- factor(testdatanew$Price)
+testdatanew$year <- factor(testdatanew$year)
+testdatanew$Choice <- factor(ifelse(testdatanew$Choice == TRUE, 1, 0))
+
+testdatanew$income <- ifelse(testdatanew$income == "Under $29,999", 1, ifelse(testdatanew$income == "$30,000 to $39,999", 2, ifelse(testdatanew$income =="$40,000 to $49,999", 3, ifelse(testdatanew$income =="$50,000 to $59,999", 4, ifelse(testdatanew$income =="$60,000 to $69,999", 5, ifelse(testdatanew$income =="$70,000 to $79,999", 6, ifelse(testdatanew$income =="$80,000 to $89,999", 7, ifelse(testdatanew$income =="$90,000 to $99,999", 8, ifelse(testdatanew$income =="$100,000 to $109,999", 9, ifelse(testdatanew$income == "$110,000 to $119,999", 10, ifelse(testdatanew$income == "$120,000 to $129,999", 11, ifelse(testdatanew$income == "$130,000 to $139,999", 12, ifelse(testdatanew$income == "$140,000 to $149,999", 13, ifelse(testdatanew$income == "$150,000 to $159,999", 14, ifelse(testdatanew$income == "$160,000 to $169,999", 15, ifelse(testdatanew$income == "$170,000 to $179,999", 16, ifelse(testdatanew$income == "$180,000 to $189,999", 17, ifelse(testdatanew$income == "$190,000 to $199,999", 18, ifelse(testdatanew$income == "$200,000 to $209,999", 19, ifelse(testdatanew$income == "$220,000 to $229,999", 20, ifelse(testdatanew$income == "$230,000 to $239,999", 21, ifelse(testdatanew$income == "$250,000 to $259,999", 22, ifelse(testdatanew$income == "$270,000 to $279,999", 23, ifelse(testdatanew$income == "$300,000 & Over", 24, 0))))))))))))))))))))))))
+
+str(testdatanew)
+head(testdatanew$income)
+table(testdatanew$income)
+table(traindatanew$income)
+which(testdatanew$income==!traindatanew$income)
+```
+
+### Mlogit
 ```{r}
 # initialise everything
-model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, data = traindata)
+library(mlogit)
+
+model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, data = train_train)
 summary(model1)
 original <- train$Choice
 head(original)
@@ -78,11 +126,29 @@ logloss2
 ```{r}
 library(C50)
 C50model1 <- C5.0(Choice ~ ., data = traindatanew)
+#C5imp(C50model1)
+predC50 <- predict.C5.0(C50model1, newdata = testdatanew, type = "prob")
+dim(predC50)
+N <- nrow(test)
+predC50Matrix <- matrix(predC50[,2], nrow = N, ncol = 4, byrow = TRUE)
+for (k in 1:N){
+  for (i in 1:4){
+    predC50Matrix[k,i] <- predC50Matrix[k,i]/sum(predC50Matrix[k,])
+  }
+}
+predC50Matrix
+write.csv()
+
+predC50Matrix_log <- log(predC50Matrix)
+logloss<- -(sum(predC50Matrix_log*train[,95:98]))/N
+logloss
+
+C50model1 <- C5.0(Choice ~ ., data = traindatanew)
 C5imp(C50model1)
 predC50 <- predict.C5.0(C50model1, newdata = traindatanew, type = "prob")
 N <- nrow(train)
-predC50Matrix<-matrix(predC50[,2],nrow=N,ncol=4,byrow=TRUE)
-predC50Matrix_log <- log(predC50Matrix)
+predC50Matrix2 <- matrix(predC50[,2], nrow = N, ncol = 4, byrow = TRUE)
+predC50Matrix_log <- log(predC50Matrix2)
 logloss<- -(sum(predC50Matrix_log*train[,95:98]))/N
 logloss
 
@@ -98,6 +164,13 @@ logloss
 ### Random Forest
 ```{r}
 library(randomForest)
-
+ranfor1 <- randomForest(Choice ~ ., data = traindatanew)
+predrf1 <- predict(ranfor1, newdata = traindatanew, type = "vote")
+head(predrf1)
+predrf1Matrix <- matrix(predrf1[,2], nrow = N, ncol = 4, byrow = TRUE)
+pred
+head(predrf1Matrix)
+predrf1Matrix_log <- log(predrf1Matrix)
+logloss<- -(sum(predrf1Matrix_log*train[,95:98]))/N
+logloss
 ```
-
