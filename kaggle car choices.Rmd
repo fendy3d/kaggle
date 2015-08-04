@@ -6,7 +6,7 @@ setwd("/Users/fendylieanata/Dropbox/ESD_Term 8/40.220 Analytics Edge/kaggle")
 ```{r}
 #git add ., git commit -m "msg", git push, git pull
 train <- read.csv("train.csv")
-
+library(mlogit)
 traindata <- mlogit.data(train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
 str(traindata)
 
@@ -44,6 +44,8 @@ traindatanew$Price <- factor(traindatanew$Price)
 traindatanew$year <- factor(traindatanew$year)
 traindatanew$Choice <- factor(ifelse(traindatanew$Choice == TRUE, 1, 0))
 
+#traindata$income <- ifelse(traindata$income == "Under $29,999", 15000, ifelse(traindata$income == "$30,000 to $39,999", 35000, ifelse(traindata$income =="$40,000 to $49,999", 45000, ifelse(traindata$income =="$50,000 to $59,999", 55000, ifelse(traindata$income =="$60,000 to $69,999", 65000, ifelse(traindata$income =="$70,000 to $79,999", 75000, ifelse(traindata$income =="$80,000 to $89,999", 85000, ifelse(traindata$income =="$90,000 to $99,999", 95000, ifelse(traindata$income =="$100,000 to $109,999", 105000, ifelse(traindata$income == "$110,000 to $119,999", 115000, ifelse(traindata$income == "$120,000 to $129,999", 125000, ifelse(traindata$income == "$130,000 to $139,999", 135000, ifelse(traindata$income == "$140,000 to $149,999", 145000, ifelse(traindata$income == "$150,000 to $159,999", 155000, ifelse(traindata$income == "$160,000 to $169,999", 165000, ifelse(traindata$income == "$170,000 to $179,999", 175000, ifelse(traindata$income == "$180,000 to $189,999", 185000, ifelse(traindata$income == "$190,000 to $199,999", 195000, ifelse(traindata$income == "$200,000 to $209,999", 205000, ifelse(traindata$income == "$220,000 to $229,999", 225000, ifelse(traindata$income == "$230,000 to $239,999", 235000, ifelse(traindata$income == "$250,000 to $259,999", 255000, ifelse(traindata$income == "$270,000 to $279,999", 275000, ifelse(traindata$income == "$300,000 & Over", 320000, 0))))))))))))))))))))))))
+traindatanew$income <- ifelse(traindatanew$income == "Under $29,999", 15000, ifelse(traindatanew$income == "$30,000 to $39,999", 35000, ifelse(traindatanew$income =="$40,000 to $49,999", 45000, ifelse(traindatanew$income =="$50,000 to $59,999", 55000, ifelse(traindatanew$income =="$60,000 to $69,999", 65000, ifelse(traindatanew$income =="$70,000 to $79,999", 75000, ifelse(traindatanew$income =="$80,000 to $89,999", 85000, ifelse(traindatanew$income =="$90,000 to $99,999", 95000, ifelse(traindatanew$income =="$100,000 to $109,999", 105000, ifelse(traindatanew$income == "$110,000 to $119,999", 115000, ifelse(traindatanew$income == "$120,000 to $129,999", 125000, ifelse(traindatanew$income == "$130,000 to $139,999", 135000, ifelse(traindatanew$income == "$140,000 to $149,999", 145000, ifelse(traindatanew$income == "$150,000 to $159,999", 155000, ifelse(traindatanew$income == "$160,000 to $169,999", 165000, ifelse(traindatanew$income == "$170,000 to $179,999", 175000, ifelse(traindatanew$income == "$180,000 to $189,999", 185000, ifelse(traindatanew$income == "$190,000 to $199,999", 195000, ifelse(traindatanew$income == "$200,000 to $209,999", 205000, ifelse(traindatanew$income == "$220,000 to $229,999", 225000, ifelse(traindatanew$income == "$230,000 to $239,999", 235000, ifelse(traindatanew$income == "$250,000 to $259,999", 255000, ifelse(traindatanew$income == "$270,000 to $279,999", 275000, ifelse(traindatanew$income == "$300,000 & Over", 320000, 0))))))))))))))))))))))))
 #traindatanew$income <- ifelse(traindatanew$income == "Under $29,999", 1, ifelse(traindatanew$income == "$30,000 to $39,999", 2, ifelse(traindatanew$income =="$40,000 to $49,999", 3, ifelse(traindatanew$income =="$50,000 to $59,999", 4, ifelse(traindatanew$income =="$60,000 to $69,999", 5, ifelse(traindatanew$income =="$70,000 to $79,999", 6, ifelse(traindatanew$income =="$80,000 to $89,999", 7, ifelse(traindatanew$income =="$90,000 to $99,999", 8, ifelse(traindatanew$income =="$100,000 to $109,999", 9, ifelse(traindatanew$income == "$110,000 to $119,999", 10, ifelse(traindatanew$income == "$120,000 to $129,999", 11, ifelse(traindatanew$income == "$130,000 to $139,999", 12, ifelse(traindatanew$income == "$140,000 to $149,999", 13, ifelse(traindatanew$income == "$150,000 to $159,999", 14, ifelse(traindatanew$income == "$160,000 to $169,999", 15, ifelse(traindatanew$income == "$170,000 to $179,999", 16, ifelse(traindatanew$income == "$180,000 to $189,999", 17, ifelse(traindatanew$income == "$190,000 to $199,999", 18, ifelse(traindatanew$income == "$200,000 to $209,999", 19, ifelse(traindatanew$income == "$220,000 to $229,999", 20, ifelse(traindatanew$income == "$230,000 to $239,999", 21, ifelse(traindatanew$income == "$250,000 to $259,999", 22, ifelse(traindatanew$income == "$270,000 to $279,999", 23, ifelse(traindatanew$income == "$300,000 & Over", 24, 0))))))))))))))))))))))))
 
 str(traindatanew)
@@ -86,7 +88,8 @@ testdatanew$Price <- factor(testdatanew$Price)
 testdatanew$year <- factor(testdatanew$year)
 testdatanew$Choice <- factor(ifelse(testdatanew$Choice == TRUE, 1, 0))
 
-testdatanew$income <- ifelse(testdatanew$income == "Under $29,999", 1, ifelse(testdatanew$income == "$30,000 to $39,999", 2, ifelse(testdatanew$income =="$40,000 to $49,999", 3, ifelse(testdatanew$income =="$50,000 to $59,999", 4, ifelse(testdatanew$income =="$60,000 to $69,999", 5, ifelse(testdatanew$income =="$70,000 to $79,999", 6, ifelse(testdatanew$income =="$80,000 to $89,999", 7, ifelse(testdatanew$income =="$90,000 to $99,999", 8, ifelse(testdatanew$income =="$100,000 to $109,999", 9, ifelse(testdatanew$income == "$110,000 to $119,999", 10, ifelse(testdatanew$income == "$120,000 to $129,999", 11, ifelse(testdatanew$income == "$130,000 to $139,999", 12, ifelse(testdatanew$income == "$140,000 to $149,999", 13, ifelse(testdatanew$income == "$150,000 to $159,999", 14, ifelse(testdatanew$income == "$160,000 to $169,999", 15, ifelse(testdatanew$income == "$170,000 to $179,999", 16, ifelse(testdatanew$income == "$180,000 to $189,999", 17, ifelse(testdatanew$income == "$190,000 to $199,999", 18, ifelse(testdatanew$income == "$200,000 to $209,999", 19, ifelse(testdatanew$income == "$220,000 to $229,999", 20, ifelse(testdatanew$income == "$230,000 to $239,999", 21, ifelse(testdatanew$income == "$250,000 to $259,999", 22, ifelse(testdatanew$income == "$270,000 to $279,999", 23, ifelse(testdatanew$income == "$300,000 & Over", 24, 0))))))))))))))))))))))))
+#testdata$income <- ifelse(testdata$income == "Under $29,999", 15000, ifelse(testdata$income == "$30,000 to $39,999", 35000, ifelse(testdata$income =="$40,000 to $49,999", 45000, ifelse(testdata$income =="$50,000 to $59,999", 55000, ifelse(testdata$income =="$60,000 to $69,999", 65000, ifelse(testdata$income =="$70,000 to $79,999", 75000, ifelse(testdata$income =="$80,000 to $89,999", 85000, ifelse(testdata$income =="$90,000 to $99,999", 95000, ifelse(testdata$income =="$100,000 to $109,999", 105000, ifelse(testdata$income == "$110,000 to $119,999", 115000, ifelse(testdata$income == "$120,000 to $129,999", 125000, ifelse(testdata$income == "$130,000 to $139,999", 135000, ifelse(testdata$income == "$140,000 to $149,999", 145000, ifelse(testdata$income == "$150,000 to $159,999", 155000, ifelse(testdata$income == "$160,000 to $169,999", 165000, ifelse(testdata$income == "$170,000 to $179,999", 175000, ifelse(testdata$income == "$180,000 to $189,999", 185000, ifelse(testdata$income == "$190,000 to $199,999", 195000, ifelse(testdata$income == "$200,000 to $209,999", 205000, ifelse(testdata$income == "$220,000 to $229,999", 225000, ifelse(testdata$income == "$230,000 to $239,999", 235000, ifelse(testdata$income == "$250,000 to $259,999", 255000, ifelse(testdata$income == "$270,000 to $279,999", 275000, ifelse(testdata$income == "$300,000 & Over", 320000, 0))))))))))))))))))))))))
+testdatanew$income <- ifelse(testdatanew$income == "Under $29,999", 15000, ifelse(testdatanew$income == "$30,000 to $39,999", 35000, ifelse(testdatanew$income =="$40,000 to $49,999", 45000, ifelse(testdatanew$income =="$50,000 to $59,999", 55000, ifelse(testdatanew$income =="$60,000 to $69,999", 65000, ifelse(testdatanew$income =="$70,000 to $79,999", 75000, ifelse(testdatanew$income =="$80,000 to $89,999", 85000, ifelse(testdatanew$income =="$90,000 to $99,999", 95000, ifelse(testdatanew$income =="$100,000 to $109,999", 105000, ifelse(testdatanew$income == "$110,000 to $119,999", 115000, ifelse(testdatanew$income == "$120,000 to $129,999", 125000, ifelse(testdatanew$income == "$130,000 to $139,999", 135000, ifelse(testdatanew$income == "$140,000 to $149,999", 145000, ifelse(testdatanew$income == "$150,000 to $159,999", 155000, ifelse(testdatanew$income == "$160,000 to $169,999", 165000, ifelse(testdatanew$income == "$170,000 to $179,999", 175000, ifelse(testdatanew$income == "$180,000 to $189,999", 185000, ifelse(testdatanew$income == "$190,000 to $199,999", 195000, ifelse(testdatanew$income == "$200,000 to $209,999", 205000, ifelse(testdatanew$income == "$220,000 to $229,999", 225000, ifelse(testdatanew$income == "$230,000 to $239,999", 235000, ifelse(testdatanew$income == "$250,000 to $259,999", 255000, ifelse(testdatanew$income == "$270,000 to $279,999", 275000, ifelse(testdatanew$income == "$300,000 & Over", 320000, 0))))))))))))))))))))))))
 
 str(testdatanew)
 head(testdatanew$income)
@@ -100,14 +103,48 @@ which(testdatanew$income==!traindatanew$income)
 # initialise everything
 library(mlogit)
 
-model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, data = train_train)
+model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = traindata)
 summary(model1)
-original <- train$Choice
-head(original)
+AIC(model1) #23645.76
 
-pred1 <- predict(model1, newdata = traindata)
-nrow(traindata)
-nrow(testdata)
+model2 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch1", data = traindata)
+summary(model2)
+AIC(model2) #22988.89
+
+model3 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch2", data = traindata)
+summary(model3)
+AIC(model3) #22988.89
+
+model4 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch3", data = traindata)
+summary(model4)
+AIC(model4) #22988.89
+
+model5 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch4", data = traindata)
+summary(model5)
+AIC(model5) #22988.89
+
+model6 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | income + segment + educ + miles + age + region + Urb + ppark + night, data = traindata)
+summary(model6)
+AIC(model6) #22310.62
+
+m <- model.matrix(model6)
+alt <- index(traindata)$alt
+chid <- index(traindata)$chid
+eXb <- as.numeric(exp(m %*% coef(model6)))
+SeXb <- tapply(eXb, chid, sum)
+P <- eXb/SeXb[chid]
+P <- matrix(P, ncol = 4, byrow = TRUE)
+head(P)
+```
+
+```{r}
+library(ISLR)
+library(leaps)
+train.mat <- model.matrix(Choice ~., data = train)
+var.length <- ncol(train) - 1
+k <- 10
+set.seed(100)
+folds <- sample(1:k, nrow(train))
 
 hist(train$GN1)
 N <- nrow(train)
@@ -122,26 +159,50 @@ logloss2<- -(sum(predictmodel2_log*train[,95:98]))/N
 logloss2
 ```
 
-### C5.0
+### Logistic Regression
 ```{r}
-library(C50)
-C50model1 <- C5.0(Choice ~ ., data = traindatanew)
-#C5imp(C50model1)
-predC50 <- predict.C5.0(C50model1, newdata = testdatanew, type = "prob")
-dim(predC50)
+logreg1 <- glm(Choice ~., data = traindatanew, family = binomial)
+summary(logreg1)
+predlogreg1 <- predict(logreg1, newdata = testdatanew, type = "response")
 N <- nrow(test)
-predC50Matrix <- matrix(predC50[,2], nrow = N, ncol = 4, byrow = TRUE)
-for (k in 1:N){
-  for (i in 1:4){
-    predC50Matrix[k,i] <- predC50Matrix[k,i]/sum(predC50Matrix[k,])
+head(predlogreg1)
+predlogregmat1 <- matrix(predlogreg1, nrow = N, ncol = 4, byrow = TRUE)
+head(predlogregmat1)
+sum(predlogregmat1[1,])
+for (i in 1:N){
+  d <- sum(predlogregmat1[i,])
+  for (j in 1:4){
+    predlogregmat1[i,j] <- predlogregmat1[i,j]/d
   }
 }
-predC50Matrix
-write.csv()
+sum(predlogregmat1[1,])
+predlogregmat1_log <- log(predlogregmat1)
+logloss<- -(sum(predlogregmat1_log*train[,95:98]))/N
+logloss #1.266619
+```
 
+### C5.0
+```{r}
+#kaggle score: 1.39744
+library(C50)
+C50model1 <- C5.0(as.factor(Choice) ~ ., data = traindatanew)
+C5imp(C50model1)
+predC50 <- predict.C5.0(C50model1, newdata = testdatanew, type = "prob")
+head(predC50)
+N <- nrow(test)
+predC50Matrix <- matrix(predC50[,2], nrow = N, ncol = 4, byrow = TRUE)
+head(predC50Matrix)
+for (i in 1:N){
+  d <- sum(predC50Matrix[i,])
+  for (j in 1:4){
+    predC50Matrix[i,j] <- predC50Matrix[i,j]/d
+  }
+}
+sum(predC50Matrix[1,])
 predC50Matrix_log <- log(predC50Matrix)
 logloss<- -(sum(predC50Matrix_log*train[,95:98]))/N
-logloss
+logloss #1.29352
+write.csv(predC50Matrix, "submission1.csv")
 
 C50model1 <- C5.0(Choice ~ ., data = traindatanew)
 C5imp(C50model1)
@@ -163,14 +224,25 @@ logloss
 
 ### Random Forest
 ```{r}
+#kaggle score: 1.23523
 library(randomForest)
-ranfor1 <- randomForest(Choice ~ ., data = traindatanew)
-predrf1 <- predict(ranfor1, newdata = traindatanew, type = "vote")
+rf1 <- randomForest(Choice ~ ., data = traindatanew, ntree = 1000)
+predrf1 <- predict(rf1, newdata = testdatanew, type = "prob")
 head(predrf1)
 predrf1Matrix <- matrix(predrf1[,2], nrow = N, ncol = 4, byrow = TRUE)
-pred
 head(predrf1Matrix)
+sum(predrf1Matrix[1,])
+for (i in 1:N){
+  d <- sum(predrf1Matrix[i,])
+  for (j in 1:4){
+    predrf1Matrix[i,j] <- predrf1Matrix[i,j]/d
+  }
+}
+sum(predrf1Matrix[1,])
 predrf1Matrix_log <- log(predrf1Matrix)
+head(predrf1Matrix_log)
 logloss<- -(sum(predrf1Matrix_log*train[,95:98]))/N
-logloss
+logloss #1.168368
+write.csv(predrf1Matrix, "submissionday1_2.csv")
+
 ```
