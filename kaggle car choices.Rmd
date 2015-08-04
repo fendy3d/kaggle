@@ -8,3 +8,4 @@ library(mlogit)
 traindata <- mlogit.data(subset(safety, Task<=12), shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"),id.var="Case")
 ```
 
+hello leebond
