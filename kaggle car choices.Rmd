@@ -2,11 +2,17 @@
 title: "kaggle_car choices"
 output: html_document
 ---
+setwd("/Users/fendylieanata/Dropbox/ESD_Term 8/40.220 Analytics Edge/kaggle")
 ```{r}
 #git add ., git commit -m "msg", git push, git pull
 train <- read.csv("train.csv")
 library(mlogit)
-traindata <- mlogit.data(subset(train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"),id.var="Case")
+traindata <- mlogit.data(subset(train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"),id.var="Case"))
+
+```
+
+```{r}
+# initialise everything
 
 ```
 
