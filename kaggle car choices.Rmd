@@ -6,12 +6,48 @@ setwd("/Users/fendylieanata/Dropbox/ESD_Term 8/40.220 Analytics Edge/kaggle")
 ```{r}
 #git add ., git commit -m "msg", git push, git pull
 train <- read.csv("train.csv")
+test <- read.csv("test.csv")
+str(traindata)
+str(testdata)
 library(mlogit)
 traindata <- mlogit.data(train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+testdata <- mlogit.data(test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+str(traindata)
+grep("Ch1", colnames(traindata))
+grep("Ch2", colnames(traindata))
+grep("Ch3", colnames(traindata))
+grep("Ch4", colnames(traindata))
+grep("chid", colnames(traindata))
+traindatanew <- subset(traindata, select = - c(15,16,17,18,41))
+
+lmodel <- lm(Choice ~., data = traindatanew)
+
+logloss2<- -(sum(lmodel_log*train[,95:98]))/N
+logloss2
+summary(lmodel)
 ```
 
 ```{r}
 # initialise everything
-model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = traindata)
+model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, data = traindata)
+summary(model1)
+original <- train$Choice
+head(original)
+
+pred1 <- predict(model1, newdata = traindata)
+nrow(traindata)
+nrow(testdata)
+
+hist(train$GN1)
+N <- nrow(train)
+predictmodel1<-fitted(model1)
+predictmodel1_log <- log(predictmodel1)
+logloss1<- -(sum(predictmodel1_log*train[,95:98]))/N
+logloss1
+
+predictmodel2 <- model1$fitted.values
+predictmodel2_log <- log(predictmodel2)
+logloss2<- -(sum(predictmodel2_log*train[,95:98]))/N
+logloss2
 ```
 
