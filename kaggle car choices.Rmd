@@ -1,0 +1,10 @@
+---
+title: "kaggle_car choices"
+output: html_document
+---
+```{r}
+train <- read.csv("train.csv")
+library(mlogit)
+mlogit()
+```
+
