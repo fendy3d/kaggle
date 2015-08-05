@@ -3,94 +3,90 @@ title: "kaggle_car choices"
 output: html_document
 ---
 setwd("/Users/fendylieanata/Dropbox/ESD_Term 8/40.220 Analytics Edge/kaggle")
-```{r}
-#git add ., git commit -m "msg", git push, git pull
-train <- read.csv("train.csv", stringsAsFactors = FALSE)
 
-N <- nrow(train)
-for (i in 1:N){
-  if (train[i,93] == "$290,000 to $299,999"){
-    train[i,93] <- as.character("$300,000 & Over")
-  }
+
+## Functions
+```{r}
+# convert all income to the middle value
+convertincometointeger <- function(train){ 
+        train$income <- ifelse(train$income == "Under $29,999", 15000, ifelse(train$income == "$30,000 to $39,999", 35000, ifelse(train$income =="$40,000 to $49,999", 45000, ifelse(train$income =="$50,000 to $59,999", 55000, ifelse(train$income =="$60,000 to $69,999", 65000, ifelse(train$income =="$70,000 to $79,999", 75000, ifelse(train$income =="$80,000 to $89,999", 85000, ifelse(train$income =="$90,000 to $99,999", 95000, ifelse(train$income =="$100,000 to $109,999", 105000, ifelse(train$income == "$110,000 to $119,999", 115000, ifelse(train$income == "$120,000 to $129,999", 125000, ifelse(train$income == "$130,000 to $139,999", 135000, ifelse(train$income == "$140,000 to $149,999", 145000, ifelse(train$income == "$150,000 to $159,999", 155000, ifelse(train$income == "$160,000 to $169,999", 165000, ifelse(train$income == "$170,000 to $179,999", 175000, ifelse(train$income == "$190,000 to $199,999", 195000, ifelse(train$income == "$200,000 to $209,999", 205000, ifelse(train$income == "$220,000 to $229,999", 225000, ifelse(train$income == "$250,000 to $259,999", 255000, ifelse(train$income == "$300,000 & Over", 320000, NA)))))))))))))))))))))
+        return (train)
 }
 
-train$income <- ifelse(train$income == "Under $29,999", 15000, ifelse(train$income == "$30,000 to $39,999", 35000, ifelse(train$income =="$40,000 to $49,999", 45000, ifelse(train$income =="$50,000 to $59,999", 55000, ifelse(train$income =="$60,000 to $69,999", 65000, ifelse(train$income =="$70,000 to $79,999", 75000, ifelse(train$income =="$80,000 to $89,999", 85000, ifelse(train$income =="$90,000 to $99,999", 95000, ifelse(train$income =="$100,000 to $109,999", 105000, ifelse(train$income == "$110,000 to $119,999", 115000, ifelse(train$income == "$120,000 to $129,999", 125000, ifelse(train$income == "$130,000 to $139,999", 135000, ifelse(train$income == "$140,000 to $149,999", 145000, ifelse(train$income == "$150,000 to $159,999", 155000, ifelse(train$income == "$160,000 to $169,999", 165000, ifelse(train$income == "$170,000 to $179,999", 175000, ifelse(train$income == "$190,000 to $199,999", 195000, ifelse(train$income == "$200,000 to $209,999", 205000, ifelse(train$income == "$220,000 to $229,999", 225000, ifelse(train$income == "$250,000 to $259,999", 255000, ifelse(train$income == "$300,000 & Over", 320000, NA)))))))))))))))))))))
+# manage inconsistencies in income (only for training)
+convertincome_train <- function(train){ 
+        for (i in 1:N){
+                if (train[i,93] == "$290,000 to $299,999"){
+                        train[i,93] <- as.character("$300,000 & Over")
+                        }
+                }
+        return (train)
+}
+# manage inconsistencies in income (only for test)
+convertincome_test <- function(test){
+        for (i in 1:N){
+          if (as.character(test[i,93]) == "$180,000 to $189,999"){
+            test[i,93] = as.character("$170,000 to $179,999")
+          } else if (as.character(test[i,93]) == "$230,000 to $239,999"){
+            test[i,93] = as.character("$220,000 to $229,999")
+          } else if (as.character(test[i,93]) == "$270,000 to $279,999"){
+            test[i,93] = as.character("$250,000 to $259,999")
+          }
+        return (test)
+}
 
-train$segment <- factor(train$segment)
-train$year <- factor(train$year)
-train$miles <- factor(train$miles)
-train$night <- factor(train$night)
-train$gender <- factor(train$gender)
-train$age <- factor(train$age)
-train$educ <- factor(train$educ)
-train$region <- factor(train$region)
-train$Urb <- factor(train$Urb)
-train$ppark <- factor(train$ppark)
+}
 
-#train$income <- ifelse(train$income == "Under $29,999", 15000, ifelse(train$income == "$30,000 to $39,999", 35000, ifelse(train$income =="$40,000 to $49,999", 45000, ifelse(train$income =="$50,000 to $59,999", 55000, ifelse(train$income =="$60,000 to $69,999", 65000, ifelse(train$income =="$70,000 to $79,999", 75000, ifelse(train$income =="$80,000 to $89,999", 85000, ifelse(train$income =="$90,000 to $99,999", 95000, ifelse(train$income =="$100,000 to $109,999", 105000, ifelse(train$income == "$110,000 to $119,999", 115000, ifelse(train$income == "$120,000 to $129,999", 125000, ifelse(train$income == "$130,000 to $139,999", 135000, ifelse(train$income == "$140,000 to $149,999", 145000, ifelse(train$income == "$150,000 to $159,999", 155000, ifelse(train$income == "$160,000 to $169,999", 165000, ifelse(train$income == "$170,000 to $179,999", 175000, ifelse(train$income == "$190,000 to $199,999", 195000, ifelse(train$income == "$200,000 to $209,999", 205000, ifelse(train$income == "$220,000 to $229,999", 225000, ifelse(train$income == "$250,000 to $259,999", 255000, ifelse(train$income == "$300,000 & Over", 320000, 1000)))))))))))))))))))))
+# factorise the variables (segment, year .. ppark)
+factorise <- function(train){
+        train$segment <- factor(train$segment)
+        train$year <- factor(train$year)
+        train$miles <- factor(train$miles)
+        train$night <- factor(train$night)
+        train$gender <- factor(train$gender)
+        train$age <- factor(train$age)
+        train$educ <- factor(train$educ)
+        train$region <- factor(train$region)
+        train$Urb <- factor(train$Urb)
+        train$ppark <- factor(train$ppark)
+        return (train)
+}
 
-library(mlogit)
-traindata <- mlogit.data(train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+```
 
-str(traindata)
 
-grep("Ch1", colnames(traindata))
-grep("Ch2", colnames(traindata))
-grep("Ch3", colnames(traindata))
-grep("Ch4", colnames(traindata))
-grep("chid", colnames(traindata))
-grep("alt", colnames(traindata))
-
-traindatanew <- subset(traindata, select = - c(1,2,3,15,16,17,18,20,41))
-
-str(traindatanew)
+# training sets
+```{r}
+train <- read.csv("train.csv", stringsAsFactors = FALSE)
+train <- convertincometointeger(convertincome_train(train)) # converts '$290,000 to $299,999' to '$300,000 and over', then take the medium value.
+train <- factorise(train) # factorise the variables (segment, year .. ppark)
 
 set.seed(100)
 library(caTools)
-spl <- sample.split(traindatanew$Choice, SplitRatio = 0.6)
-train_train <- subset(traindatanew, spl == TRUE)
-train_test <- subset(traindatanew, spl == FALSE)
+spl <- sample.split(train$Choice, SplitRatio = 0.7)
+train_train <- subset(train, spl == TRUE)
+train_test <- subset(train, spl == FALSE)
+
+library(mlogit)
+traindata <- mlogit.data(train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+train_train <- mlogit.data(train_train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+train_test <- mlogit.data(train_test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+traindatanew <- subset(traindata, select = - c(1,2,3,15,16,17,18,20,41)) # remove ch1,ch2,ch3,ch4,chid,alt columns
+
 ```
 
 ### Test Set
 ```{r}
 test <- read.csv("test.csv", stringsAsFactors = FALSE)
-test[is.na(test)] <- 0
-
-N <- nrow(test)
-for (i in 1:N){
-  if (as.character(test[i,93]) == "$180,000 to $189,999"){
-    test[i,93] = as.character("$170,000 to $179,999")
-  } else if (as.character(test[i,93]) == "$230,000 to $239,999"){
-    test[i,93] = as.character("$220,000 to $229,999")
-  } else if (as.character(test[i,93]) == "$270,000 to $279,999"){
-    test[i,93] = as.character("$250,000 to $259,999")
-  }
-}
-
-test$income <- ifelse(test$income == "Under $29,999", 15000, ifelse(test$income == "$30,000 to $39,999", 35000, ifelse(test$income =="$40,000 to $49,999", 45000, ifelse(test$income =="$50,000 to $59,999", 55000, ifelse(test$income =="$60,000 to $69,999", 65000, ifelse(test$income =="$70,000 to $79,999", 75000, ifelse(test$income =="$80,000 to $89,999", 85000, ifelse(test$income =="$90,000 to $99,999", 95000, ifelse(test$income =="$100,000 to $109,999", 105000, ifelse(test$income == "$110,000 to $119,999", 115000, ifelse(test$income == "$120,000 to $129,999", 125000, ifelse(test$income == "$130,000 to $139,999", 135000, ifelse(test$income == "$140,000 to $149,999", 145000, ifelse(test$income == "$150,000 to $159,999", 155000, ifelse(test$income == "$160,000 to $169,999", 165000, ifelse(test$income == "$170,000 to $179,999", 175000, ifelse(test$income == "$190,000 to $199,999", 195000, ifelse(test$income == "$200,000 to $209,999", 205000, ifelse(test$income == "$220,000 to $229,999", 225000, ifelse(test$income == "$250,000 to $259,999", 255000, ifelse(test$income == "$300,000 & Over", 320000, NA)))))))))))))))))))))
-
-str(test)
-
-test$segment <- factor(test$segment)
-test$year <- factor(test$year)
-test$miles <- factor(test$miles)
-test$night <- factor(test$night)
-test$gender <- factor(test$gender)
-test$age <- factor(test$age)
-test$educ <- factor(test$educ)
-test$region <- factor(test$region)
-test$Urb <- factor(test$Urb)
-test$ppark <- factor(test$ppark)
-
-str(test)
+test[is.na(test)] <- 0 # adds 0 to all missing values
+test <- convertincometointeger(convertincome_test(test))
+test <- factorise(test)
 
 testdata <- mlogit.data(test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
-
 testdata[is.na(testdata)] <- 0
 
-testdatanew <- subset(testdata, select = - c(1,2,3,15,16,17,18,20,41))
-
+testdatanew <- subset(testdata, select = - c(1,2,3,15,16,17,18,20,41)) # remove ch1,ch2,ch3,ch4,chid,alt columns
 testdatanew$year <- factor(testdatanew$year)
 testdatanew$Choice <- factor(ifelse(testdatanew$Choice == TRUE, 1, 0))
 ```
@@ -98,7 +94,7 @@ testdatanew$Choice <- factor(ifelse(testdatanew$Choice == TRUE, 1, 0))
 ### Mlogit
 ```{r}
 # initialise everything
-model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = traindata)
+model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train)
 summary(model1)
 AIC(model1) #23645.76, logloss: 1.296198
 
@@ -126,7 +122,11 @@ model7 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+
 AIC(model7) #22365.67
 
 #kaggle score: 1.23575
-predmlogit1 <- predict(model7, newdata = testdata)
+
+# To get the logloss
+
+# To predict test set
+predmlogit1 <- predict(model1, newdata = testdata)
 N <- nrow(test)
 predmlogit1_log <- log(predmlogit1)
 logloss1<- -(sum(predmlogit1_log*train[,95:98]))/N
@@ -309,4 +309,11 @@ testdata[is.na(testdata)] <- 0
 
 testdata$income <- ifelse(testdata$income == levels(testdata$income)[9], "$170,000 to $179,999", ifelse(testdata$income == levels(testdata$income)[13], "$220,000 to $229,999", ifelse(testdata$income == levels(testdata$income)[15], "$250,000 to $259,999")))
 ```
+
+#SVM
+```{r}
+
+```
+
+
 
