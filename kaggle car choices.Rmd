@@ -18,29 +18,37 @@ convertpricetointeger <- function(train){
 }
 
 # manage inconsistencies in income (only for training)
-convertincome_train <- function(train){
-        N <- nrow(train)
+convertincome_train <- function(object){
+        N <- nrow(object)
         for (i in 1:N){
-                if (train[i,93] == "$290,000 to $299,999"){
-                        train[i,93] <- as.character("$300,000 & Over")
+                if (object[i,93] == "$290,000 to $299,999"){
+                        object[i,93] <- as.character("$300,000 & Over")
+                        print ("converted!")
                         }
                 }
-        return (train)
+        return (object)
 }
 
 # manage inconsistencies in income (only for test)
-convertincome_test <- function(test){
-        N <- nrow(test)
+convertincome_test <- function(object){
+        N <- nrow(object)
         for (i in 1:N){
-          if (as.character(test[i,93]) == "$180,000 to $189,999"){
-            test[i,93] = as.character("$170,000 to $179,999")
-          } else if (as.character(test[i,93]) == "$230,000 to $239,999"){
-            test[i,93] = as.character("$220,000 to $229,999")
-          } else if (as.character(test[i,93]) == "$270,000 to $279,999"){
-            test[i,93] = as.character("$250,000 to $259,999")
+          if (object[i,93] == "$180,000 to $189,999"){
+            object[i,93] <- as.character("$170,000 to $179,999")
+            print ("converted!")
+          } else {
+            if (object[i,93] == "$230,000 to $239,999"){
+              object[i,93] <- "$220,000 to $229,999"
+              print ("converted!")
+            } else {
+              if (object[i,93] == "$270,000 to $279,999"){
+                object[i,93] <- ("$250,000 to $259,999")
+                print ("converted")
+              }
+            }
           }
-        return (test)
         }
+        return (object)
 }
 
 # factorise the variables (segment, year .. ppark)
@@ -60,45 +68,55 @@ factorise <- function(train){
 
 ```
 
-# Training sets
+# Preparing Training sets
 ```{r}
 train <- read.csv("train.csv", stringsAsFactors = FALSE)
-train <- convertincometointeger(convertincome_train(train)) # converts '$290,000 to $299,999' to '$300,000 and over', then take the middle value.
-train <- factorise(train) # factorise the variables (segment, year .. ppark)
-train$Price1 <- convertpricetointeger(train$Price1)
-train$Price2 <- convertpricetointeger(train$Price2)
-train$Price3 <- convertpricetointeger(train$Price3)
-train$Price4 <- convertpricetointeger(train$Price4)
-
-set.seed(100)
-library(caTools)
-spl <- sample.split(train$Choice, SplitRatio = 0.7)
-train_train <- subset(train, spl == TRUE)
-train_test <- subset(train, spl == FALSE)
-train_test2 <- subset(train,spl == FALSE)
+train1 <- convertincometointeger(convertincome_train(train)) # converts '$290,000 to $299,999' to '$300,000 and over', then take the middle value.
+train1 <- factorise(train1) # factorise the variables (segment, year .. ppark)
+train1$Price1 <- convertpricetointeger(train1$Price1)
+train1$Price2 <- convertpricetointeger(train1$Price2)
+train1$Price3 <- convertpricetointeger(train1$Price3)
+train1$Price4 <- convertpricetointeger(train1$Price4)
+train1$Choice <- factor(train1$Choice)
 
 library(mlogit)
-traindata <- mlogit.data(train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
-train_train <- mlogit.data(train_train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+train <- read.csv("train.csv", stringsAsFactors = FALSE)
+trainmlogit <- train
+trainmlogit <- convertincome_train(trainmlogit)
+set.seed(100)
+library(caTools)
+spl <- sample.split(trainmlogit$Choice, SplitRatio = 0.7)
+trainmlogit_train <- subset(trainmlogit, spl == TRUE)
+trainmlogit_test <- subset(trainmlogit, spl == FALSE)
 
-train_test <- mlogit.data(train_test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+trainmlogit_mlogit <- mlogit.data(trainmlogit, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
 
-traindatanew <- subset(traindata, select = - c(1,2,3,15,16,17,18,20,41)) # remove ch1,ch2,ch3,ch4,chid,alt columns
+trainmlogit_trainmlogit <- mlogit.data(trainmlogit_train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+trainmlogit_testmlogit <- mlogit.data(trainmlogit_test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
 
 ```
 
-### Test sets
+### Preparing Test sets
 ```{r}
 test <- read.csv("test.csv", stringsAsFactors = FALSE)
-test[is.na(test)] <- 0 # adds 0 to all missing values
-test <- convertincometointeger(convertincome_test(test))
-test <- factorise(test)
-test$Price1 <- convertpricetointeger(test$Price1)
-test$Price2 <- convertpricetointeger(test$Price2)
-test$Price3 <- convertpricetointeger(test$Price3)
-test$Price4 <- convertpricetointeger(test$Price4)
+test1 <- test
+test1[is.na(test1)] <- 0 # adds 0 to all missing values
+test1 <- convertincometointeger(convertincome_test(test1))
+test1 <- factorise(test1)
+test1$Price1 <- convertpricetointeger(test1$Price1)
+test1$Price2 <- convertpricetointeger(test1$Price2)
+test1$Price3 <- convertpricetointeger(test1$Price3)
+test1$Price4 <- convertpricetointeger(test1$Price4)
+test1$Choice <- factor(test1$Choice)
 
-testdata <- mlogit.data(test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+#mlogit
+test <- read.csv("test.csv", stringsAsFactors = FALSE)
+testmlogit <- test
+testmlogit[is.na(testmlogit)] <- 0 # adds 0 to all missing values
+testmlogit <- convertincome_test(testmlogit)
+testmlogit_mlogit <- mlogit.data(testmlogit, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
 
 #testdatanew$year <- factor(testdatanew$year)
 #testdatanew$Choice <- factor(ifelse(testdatanew$Choice == TRUE, 1, 0))
@@ -108,35 +126,35 @@ testdata <- mlogit.data(test, shape = "wide", choice = "Choice", varying = c(4:8
 ### Mlogit
 ```{r}
 # initialise everything
-model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train)
+model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = traindata)
 summary(model1)
-AIC(model1) #16632.11, LL: -8296.1, logloss: 1.312007 (with Price as num), 1.231658 (with Price as int)
+AIC(model1) #16632.11, LL: -8296.1, logloss: 1.296198
 
 model2 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch1", data = train_train)
 summary(model2)
-AIC(model2) #16138.74, LL: -8046.4, logloss: 1.599684
+AIC(model2) #16138.74, LL: -8046.4, logloss: 1.318158
 
 model3 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch2", data = train_train)
 summary(model3)
-AIC(model3) #16138.74, LL: -8046.4, logloss: 1.599684
+AIC(model3) #16138.74, LL: -8046.4, logloss: 1.318158
 
 model4 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch3", data = train_train)
 summary(model4)
-AIC(model4) #16138.74, LL: -8046.4, logloss: 1.599684
+AIC(model4) #16138.74, LL: -8046.4, logloss: 1.318158
 
 model5 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch4", data = train_train)
 summary(model5)
-AIC(model5) #16138.74, LL: -8046.4, logloss: 1.599684
+AIC(model5) #16138.74, LL: -8046.4, logloss: 1.318158
 
-model6 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, data = train_train)
+model6 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, data = traindata)
 summary(model6)
-AIC(model6) #16138.74, LL: -8046.4, logloss: 1.599684
+AIC(model6) #16138.74, LL: -8046.4, logloss: 1.318158
 
-model7 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + educ + miles + age + region + Urb + ppark + night + gender + year, data = train_train)
+model7 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + educ + miles + age + Urb + ppark + night + gender, data = traindata)
 summary(model7)
 AIC(model7) #15705.3, LL: -7685.7, logloss: 1.179093 (with Price as int) #kaggle score: 1.23575 #write.csv(predmlogit1, "submissionDay2_1.csv")
 
-model8 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train) #without FA, RP, FP
+model8 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = traindata) #without FA, RP, FP
 summary(model8)
 AIC(model8) #16631.87, LL:-8298.9, logloss: 1.548005, 1.232115 (with Price as int)
 
@@ -144,7 +162,7 @@ model9 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+
 summary(model9)
 AIC(model9) #16631.24, LL:-8296.6, logloss: 1.548661
 
-model10 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train) #without FA
+model10 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = traindata) #without FA
 summary(model10)
 AIC(model10) #16631.3, LL:-8296.6, logloss: 1.5486
 
@@ -176,72 +194,29 @@ model17 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+I(Pri
 summary(model17)
 AIC(model17) #17923.54, LL: -8944.8, logloss: 1.438956 #kaggle score: 1.44686
 
-model18 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, rpar = c(CC="n", GN = "n", NS = "n", BU = "n", LD = "n", BZ = "n", FC = "n", PP = "n", KA = "n", SC = "n", TS = "n", NV = "n", MA = "n", LB = "n", AF = "n", HU = "n", Price = "n"), panel = TRUE, data = train_train)
-summary(model18)
-AIC(model18) #14178.18, LL: -7055.1, logloss: 1.577168
-
-model19 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, rpar = c(CC="t", GN = "t", NS = "t", BU = "t", LD = "t", BZ = "t", FC = "t", PP = "t", KA = "t", SC = "t", TS = "t", NV = "t", MA = "t", LB = "t", AF = "t", HU = "t", Price = "t"), panel = TRUE, data = train_train)
-summary(model19)
-AIC(model19) #14425.72, LL:-7178.9, logloss: 1.588533
-
-model20 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, rpar = c(CC="u", GN = "u", NS = "u", BU = "u", LD = "u", BZ = "u", FC = "u", PP = "u", KA = "u", SC = "u", TS = "u", NV = "u", MA = "u", LB = "u", AF = "u", HU = "u", Price = "n"), panel = TRUE, data = train_train)
-summary(model20)
-AIC(model20) # 14184.82, LL: -7058.4, logloss: 1.579497
-
-modelX <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, rpar = c(CC="u", GN = "u", NS = "u", BU = "u", LD = "u", BZ = "u", FC = "u", PP = "u", KA = "u", SC = "u", TS = "u", NV = "u", MA = "u", LB = "u", AF = "u", HU = "u", Price = "n"), panel = TRUE, data = train_train)
+modelX <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU + Price -1| income + segment+ educ+ Urb+ miles + age + ppark+ region, data = trainmlogit_trainmlogit)
 summary(modelX)
 AIC(modelX)
-
-modelY <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+RP+FP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + educ + miles +region + Urb + ppark + night + age + gender + year, data = train_train) #1.183551, 1.179093(with FA,RP,FP, with age,gender,year), 1.185234(without FA,RP,FP, without age,gender,year), 1.180286(with FA,RP,FP, without age,gender,year), (without FA, with age,gender,year)
-
-modelZ <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price+RP+FP+FA-1 | segment + educ + miles + region + Urb + ppark + night + age + gender + year , rpar = c(CC="n", GN = "n", NS = "n", BU = "n", LD = "n", BZ = "n", FC = "n", PP = "n", KA = "n", SC = "n", TS = "n", NV = "n", MA = "n", LB = "n", AF = "n", HU = "n", FA = "n", FP = "n", RP = "n"), panel = TRUE, data = train_train) #1.26298
-
-predmlogitX <- predict(modelZ, newdata = train_test)
+  
+predmlogitX <- predict(modelX, newdata = trainmlogit_testmlogit)
 dim(predmlogitX)
 sum(predmlogitX[1,])
 N <- nrow(predmlogitX)
-predmlogit_log <- log(predmlogitX)
-logloss <- -(sum(predmlogit_log*train_test2[,95:98]))/N
+logloss <- -(sum(log(predmlogitX)*trainmlogit_test[,95:98]))/N
 logloss
 
-```
 
-```{r}
-m <- model.matrix(model6)
-alt <- index(traindata)$alt
-chid <- index(traindata)$chid
-eXb <- as.numeric(exp(m %*% coef(model6)))
-SeXb <- tapply(eXb, chid, sum)
-P <- eXb/SeXb[chid]
-P <- matrix(P, ncol = 4, byrow = TRUE)
-head(P)
-```
 
-```{r}
-library(ISLR)
-library(leaps)
-train.mat <- model.matrix(Choice ~., data = train)
-var.length <- ncol(train) - 1
-k <- 10
-set.seed(100)
-folds <- sample(1:k, nrow(train))
 
-hist(train$GN1)
-N <- nrow(train)
-predictmodel1<-fitted(model1)
-predictmodel1_log <- log(predictmodel1)
-logloss1<- -(sum(predictmodel1_log*train[,95:98]))/N
-logloss1
-
-predictmodel2 <- model1$fitted.values
-predictmodel2_log <- log(predictmodel2)
-logloss2<- -(sum(predictmodel2_log*train[,95:98]))/N
-logloss2
+modelY <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU + Price -1| income + segment+ educ+ Urb+ miles + age + ppark+ region, data = trainmlogit_mlogit)
+predmodelY <- predict(modelY, newdata = testmlogit_mlogit)
+head(predmodelY,20)
+write.csv(predmodelY, "bestmlogit.csv")
 ```
 
 ### Logistic Regression
 ```{r}
-logreg1 <- glm(Choice ~., data = traindatanew, family = binomial)
+logreg1 <- glm(Choice ~., data = trainoftrainnew, family = binomial)
 summary(logreg1)
 predlogreg1 <- predict(logreg1, newdata = testdatanew, type = "response")
 N <- nrow(test)
@@ -339,18 +314,22 @@ logloss
 ```{r}
 #kaggle score: 1.23523
 library(randomForest)
-rf <- randomForest(Choice ~ ., data = trainoftrainnew, importance = TRUE)
-predrf <- predict(rf, newdata = testoftestnew, type = "prob")
+rf <- randomForest(Choice ~ ., data = train_allnew, importance = TRUE, ntree = 2000)
+predrf <- predict(rf, newdata = test_allnew, type = "prob")
 head(predrf)
 sum(predrf[1,])
 N <- nrow(predrf)
-logloss<- -(sum(log(predrf)*testoftest[,95:98]))/N
-logloss #1.210693
+logloss<- -(sum(log(predrf)*trainoftest[,95:98]))/N
+logloss #1.215535 (500 trees), 1.214124 (2000 trees)
 
-rf1 <- randomForest(Class ~ ., data = traindatanew, importance = TRUE)
-predrf1 <- predict(rf1, newdata = testdatanew, type = "prob")
+rf1 <- randomForest(Choice ~ ., data = trainoftrainnew, importance = TRUE, cutoff=c(0.23,0.25,0.225,0.295))
+predrf1 <- predict(rf1, newdata = trainoftestnew, type = "prob")
 head(predrf1)
 sum(predrf1[1,])
+N <- nrow(predrf1)
+logloss<- -(sum(log(predrf1)*trainoftest[,95:98]))/N
+logloss #1.215535 (500 trees), 1.214124 (2000 trees)
+
 #predrf1Matrix <- matrix(predrf1[,2], nrow = N, ncol = 4, byrow = TRUE)
 #head(predrf1Matrix)
 #sum(predrf1Matrix[1,])
@@ -365,7 +344,7 @@ predrf1Matrix_log <- log(predrf1Matrix)
 head(predrf1Matrix_log)
 logloss<- -(sum(predrf1Matrix_log*train[,95:98]))/N
 logloss #1.168368
-write.csv(predrf1Matrix, "submissionday1_2.csv")
+#write.csv(predrf1Matrix, "submissionday1_2.csv")
 
 ```
 
@@ -440,57 +419,157 @@ head(probs2)
 library(RWeka)
 library(FSelector)
 train <- read.csv("train.csv", stringsAsFactors = FALSE)
-train1 <- train
-train1$segment <- factor(train1$segment)
-train1$year <- factor(train1$year)
-train1$miles <- factor(train1$miles)
-train1$night <- factor(train1$night)
-train1$gender <- factor(train1$gender)
-train1$age <- factor(train1$age)
-train1$educ <- factor(train1$educ)
-train1$region <- factor(train1$region)
-train1$Urb <- factor(train1$Urb)
-train1$ppark <- factor(train1$ppark)
-train1$Choice <- factor(train1$Choice)
-train1$income <- factor(train1$income)
-train1$Price1 <- factor(train1$Price1)
-train1$Price2 <- factor(train1$Price2)
-train1$Price3 <- factor(train1$Price3)
-train1$Price4 <- factor(train1$Price4)
+
+## Train 2 1.228622
+train2 <- train
+train2 <- factorise(train2)
+train2 <- convertincometointeger(convertincome_train(train2)) # converts '$290,000 to $299,999' to '$300,000 and over', then take the middle value.
+train2$Choice <- factor(train2$Choice)
+train2$income <- factor(train2$income)
+train2$Price1 <- factor(train2$Price1)
+train2$Price2 <- factor(train2$Price2)
+train2$Price3 <- factor(train2$Price3)
+train2$Price4 <- factor(train2$Price4)
 
 #train1 <- convertpricetointeger(train1)
 #train1 <- convertincometointeger(train1)
-
-spl <- sample.split(train1$Choice, SplitRatio = 0.7)
-trainoftrain <- subset(train1, spl == TRUE)
-testoftest <- subset(train1, spl == FALSE)
+set.seed(100)
+spl <- sample.split(train2$Choice, SplitRatio = 0.7)
+trainoftrain <- subset(train2, spl == TRUE)
+trainoftest <- subset(train2, spl == FALSE)
 trainoftrainnew <- subset(trainoftrain, select = - c(1,2,3,95,96,97,98))
-testoftestnew <- subset(testoftest, select = - c(1,2,3,95,96,97,98))
+trainoftestnew <- subset(trainoftest, select = - c(1,2,3,95,96,97,98))
 
-information.gain(Choice ~ ., data = trainoftrain)
-modelC45 <- J48(as.factor(Choice) ~ ., data = trainoftrainnew, control = Weka_control(A = TRUE, R = FALSE))
-predC45 <- predict(modelC45, newdata = testoftestnew, type = "probability")
+##Train 1 1.761195
+train_trainnew <- subset(train_train, select = - c(1,2,3,95,96,97,98 ))
+train_testnew <- subset(train_test, select = - c(1,2,3,95,96,97,98 ))
+
+## Train3 1.242267, 1.242426
+train3 <- train
+train3 <- convertincometointeger(convertincome_train(train3)) # converts '$290,000 to $299,999' to '$300,000 and over', then take the middle value.
+set.seed(100)
+spl <- sample.split(train3$Choice, SplitRatio = 0.7)
+trainoftrain3 <- subset(train3, spl == TRUE)
+trainoftest3 <- subset(train3, spl == FALSE)
+trainoftrainnew3 <- subset(trainoftrain3, select = - c(1,2,3,95,96,97,98))
+trainoftestnew3 <- subset(trainoftest3, select = - c(1,2,3,95,96,97,98))
+
+trainoftrainnew3fac <- as.data.frame(lapply(trainoftrainnew3, factor))
+trainoftestnew3fac <- as.data.frame(lapply(trainoftestnew3, factor))
+
+##Train 4 LHS 1.271868
+train4 <- train
+set.seed(100)
+spl <- sample.split(train4$Choice, SplitRatio = 0.7)
+trainoftrain4 <- subset(train4, spl == TRUE)
+trainoftest4 <- subset(train4, spl == FALSE)
+trainoftrainnew4 <- subset(trainoftrain4, select = - c(1,2,3,84:98))
+trainoftestnew4 <- subset(trainoftest4, select = - c(1,2,3,84:98))
+
+trainoftrainnew4fac <- as.data.frame(lapply(trainoftrainnew4, factor))
+trainoftestnew4fac <- as.data.frame(lapply(trainoftestnew4, factor))
+
+#Train 5 RHS 1.367065, 1.36721
+train5 <- train
+train5 <- convertincometointeger(convertincome_train(train5)) # converts '$290,000 to $299,999' to '$300,000 and over', then take the middle value.
+set.seed(100)
+spl <- sample.split(train5$Choice, SplitRatio = 0.7)
+trainoftrain5 <- subset(train5, spl == TRUE)
+trainoftest5 <- subset(train5, spl == FALSE)
+trainoftrainnew5 <- subset(trainoftrain5, select = - c(1:83,95:98))
+trainoftestnew5 <- subset(trainoftest5, select = - c(1:83,95:98))
+
+#trainoftrainnew5$year <- as.character(trainoftrainnew5$year)
+#trainoftestnew5$year <- as.character(trainoftestnew5$year)
+
+
+trainoftrainnew5fac <- as.data.frame(lapply(trainoftrainnew5, factor))
+trainoftestnew5fac <- as.data.frame(lapply(trainoftestnew5, factor))
+
+#Train 6 1.367065
+train6 <- train
+train6.1 <- lapply(train6[4:63], factor)
+train6.2 <- lapply(train6[84:99], factor)
+train6.3 <- train[,64:83]
+train6 <- cbind(as.data.frame(train6.1), as.data.frame(train6.3), as.data.frame(train6.2))
+#train1 <- convertpricetointeger(train1)
+#train1 <- convertincometointeger(train1)
+set.seed(100)
+
+spl <- sample.split(train6$Choice, SplitRatio = 0.7)
+trainoftrain6 <- subset(train6, spl == TRUE)
+trainoftest6 <- subset(train6, spl == FALSE)
+trainoftrainnew6 <- subset(trainoftrain6, select = - c(92,93,94,95))
+trainoftestnew6 <- subset(trainoftest6, select = - c(92,93,94,95))
+
+#Train 7 1.228603
+train7 <- train
+train7 <- factorise(train7)
+train7$Choice <- factor(train7$Choice)
+train7$income <- factor(train7$income)
+set.seed(100)
+
+spl <- sample.split(train7$Choice, SplitRatio = 0.7)
+trainoftrain7 <- subset(train7, spl == TRUE)
+trainoftest7 <- subset(train7, spl == FALSE)
+trainoftrainnew7 <- subset(trainoftrain7, select = - c(1,2,3,95,96,97,98))
+trainoftestnew7 <- subset(trainoftest7, select = - c(1,2,3,95,96,97,98))
+
+##Train 8 1.228622
+train8 <- train
+train8 <- factorise(train8)
+train8 <- convertincometointeger(convertincome_train(train8)) # converts '$290,000 to $299,999' to '$300,000 and over', then take the middle value.
+train8$Choice <- factor(train8$Choice)
+train8$income <- factor(train8$income)
+train8$Price1 <- factor(train8$Price1)
+train8$Price2 <- factor(train8$Price2)
+train8$Price3 <- factor(train8$Price3)
+train8$Price4 <- factor(train8$Price4)
+set.seed(100)
+
+spl <- sample.split(train8$Choice, SplitRatio = 0.7)
+trainoftrain8 <- subset(train8, spl == TRUE)
+trainoftest8 <- subset(train8, spl == FALSE)
+trainoftrainnew8 <- subset(trainoftrain8, select = - c(1,2,3,64:83,95,96,97,98))
+trainoftestnew8 <- subset(trainoftest8, select = - c(1,2,3,64:83,95,96,97,98))
+
+## Train all, test
+train_all <- train
+train_all <- factorise(train_all)
+train_all <- convertincometointeger(convertincome_train(train_all)) # converts '$290,000 to $299,999' to '$300,000 and over', then take the middle value.
+train_all$Choice <- factor(train_all$Choice)
+train_all$income <- factor(train_all$income)
+train_all$Price1 <- factor(train_all$Price1)
+train_all$Price2 <- factor(train_all$Price2)
+train_all$Price3 <- factor(train_all$Price3)
+train_all$Price4 <- factor(train_all$Price4)
+
+train_allnew <- subset(train_all, select = - c(1,2,3,95,96,97,98))
+
+test <- read.csv("test.csv", stringsAsFactors = FALSE)
+test_all <- test
+test_all[is.na(test_all)] <- 0 # adds 0 to all missing values
+test_all <- factorise(test_all)
+test_all <- convertincometointeger(convertincome_train(test_all)) # converts '$290,000 to $299,999' to '$300,000 and over', then take the middle value.
+test_all$income <- factor(test_all$income)
+test_all$Price1 <- factor(test_all$Price1)
+test_all$Price2 <- factor(test_all$Price2)
+test_all$Price3 <- factor(test_all$Price3)
+test_all$Price4 <- factor(test_all$Price4)
+
+test_allnew <- subset(test_all, select = - c(1,2,3,95,96,97,98))
+
+
+## Model C4.5
+information.gain(Choice ~ ., data = trainoftrainnew4)
+modelC45 <- J48(as.factor(Choice) ~ ., data = trainoftrainnew5, control = Weka_control(A = TRUE, R = FALSE))
+predC45 <- predict(modelC45, newdata = trainoftestnew5, type = "probability")
 head(predC45, 1)
 N <- nrow(predC45)
 sum(predC45[1,])
-logloss<- -(sum(log(predC45)*testoftest[,95:98]))/N
+logloss<- -(sum(log(predC45)*trainoftest5[,95:98]))/N
 logloss #1.439258
 
-
-
-test <- read.csv("test.csv", stringsAsFactors = FALSE)
-test1 <- test
-test1[is.na(test1)] <- 0 # adds 0 to all missing values
-test1 <- factorise(test1)
-test1$income <- factor(test1$income)
-test1$Price1 <- factor(test1$Price1)
-test1$Price2 <- factor(test1$Price2)
-test1$Price3 <- factor(test1$Price3)
-test1$Price4 <- factor(test1$Price4)
-
-test1sub <- subset(test1, select = - c(1,2,3,95,96,97,98))
-
-train_all <- subset(train1, select = - c(1,2,3,95,96,97,98))
 
 modelC45 <- J48(Choice ~ ., data = train_all, control = Weka_control(A = TRUE, R = FALSE))
 predC45 <- predict(modelC45, newdata = test1sub, type = "probability")
@@ -500,11 +579,12 @@ sum(predC45[1,])
 #write.csv(predC45, "submissionDay3_2.csv")
 
 ##Bagging
-modelBag1 <- Bagging(Choice ~ ., data = trainoftrainnew, control = Weka_control(W = "weka.classifiers.trees.J48"))
-predBag <- predict(modelBag1, newdata = testoftestnew, type = "probability")
+modelBag1 <- Bagging(Choice ~ ., data = trainoftrainnew, control = Weka_control(P = 70, W = "weka.classifiers.trees.J48"))
+predBag <- predict(modelBag1, newdata = trainoftestnew, type = "probability")
 head(predBag,5)
+sum(predBag[1,])
 N <- nrow(predBag)
-logloss<- -(sum(log(predBag)*testoftest[,95:98]))/N
+logloss<- -(sum(log(predBag)*trainoftest[,95:98]))/N
 logloss #NaN
 
 ## CostSensitiveClassifier
@@ -512,24 +592,34 @@ csc1 <- CostSensitiveClassifier(Choice ~ ., data = train_all)
 summary(csc1)
 ```
 
+```{r}
+trainwide2 <- mlogit.data(train, shape = "wide", choice = "Choice", varying = c(4:83,95:98), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+predictors <- as.data.frame(subset(trainwide, select = -c(1,2,3,15:20,41)))
+depvar <- as.data.frame(trainwide[,15:18])
+nb2 <- naiveBayes(y=depvar,x = predictors, data = trainwide)
+```
+
+
 ###Naive Bayes
 ```{r}
 library(e1071)
-nb1 <- naiveBayes(Choice ~ ., data = trainoftrainnew)
-summary(nb1)
-prednb1 <- predict(nb1, newdata = testoftestnew, type = "raw")
+nb1 <- naiveBayes(Choice ~ ., data = trainoftrainnew8)
+#summary(nb1)
+prednb1 <- predict(nb1, newdata = trainoftestnew8, type = "raw")
 head(prednb1, 1)
 N <- nrow(prednb1)
 sum(prednb1[1,])
-logloss<- -(sum(log(prednb1)*testoftest[,95:98]))/N
-logloss #1.204224
-write.csv(prednb1, "naivebayes.csv")
+logloss<- -(sum(log(prednb1)*trainoftest8[,95:98]))/N
+logloss
+
+#write.csv(prednb1, "naivebayes3.csv")
 ```
 
 ###SVM
 ```{r}
 library(e1071)
-svm1 <- svm(Choice ~., data = trainoftrainnew) #Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
+svm1 <- svm(Choice ~., data = trainoftrainnew7) #Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
 # got zeros in section 4
+predsvm1 <- predict(svm1, newdata = trainoftestnew7)
 ```
 
