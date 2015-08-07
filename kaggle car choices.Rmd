@@ -60,7 +60,6 @@ factorise <- function(train){
 
 ```
 
-
 # Training sets
 ```{r}
 train <- read.csv("train.csv", stringsAsFactors = FALSE)
@@ -76,10 +75,12 @@ library(caTools)
 spl <- sample.split(train$Choice, SplitRatio = 0.7)
 train_train <- subset(train, spl == TRUE)
 train_test <- subset(train, spl == FALSE)
+train_test2 <- subset(train,spl == FALSE)
 
 library(mlogit)
 traindata <- mlogit.data(train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
 train_train <- mlogit.data(train_train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
 train_test <- mlogit.data(train_test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
 
 traindatanew <- subset(traindata, select = - c(1,2,3,15,16,17,18,20,41)) # remove ch1,ch2,ch3,ch4,chid,alt columns
@@ -109,7 +110,7 @@ testdata <- mlogit.data(test, shape = "wide", choice = "Choice", varying = c(4:8
 # initialise everything
 model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train)
 summary(model1)
-AIC(model1) #16632.11, LL: -8296.1, logloss: 1.548816
+AIC(model1) #16632.11, LL: -8296.1, logloss: 1.312007 (with Price as num), 1.231658 (with Price as int)
 
 model2 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch1", data = train_train)
 summary(model2)
@@ -133,11 +134,11 @@ AIC(model6) #16138.74, LL: -8046.4, logloss: 1.599684
 
 model7 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + educ + miles + age + region + Urb + ppark + night + gender + year, data = train_train)
 summary(model7)
-AIC(model7) #15705.3, LL: -7685.7, logloss: 1.668882 #kaggle score: 1.23575 #write.csv(predmlogit1, "submissionDay2_1.csv")
+AIC(model7) #15705.3, LL: -7685.7, logloss: 1.179093 (with Price as int) #kaggle score: 1.23575 #write.csv(predmlogit1, "submissionDay2_1.csv")
 
 model8 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train) #without FA, RP, FP
 summary(model8)
-AIC(model8) #16631.87, LL:-8298.9, logloss: 1.548005
+AIC(model8) #16631.87, LL:-8298.9, logloss: 1.548005, 1.232115 (with Price as int)
 
 model9 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train) #without FP
 summary(model9)
@@ -191,12 +192,16 @@ modelX <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-
 summary(modelX)
 AIC(modelX)
 
-predmlogitX <- predict(modelX, newdata = train_test)
+modelY <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+RP+FP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + educ + miles +region + Urb + ppark + night + age + gender + year, data = train_train) #1.183551, 1.179093(with FA,RP,FP, with age,gender,year), 1.185234(without FA,RP,FP, without age,gender,year), 1.180286(with FA,RP,FP, without age,gender,year), (without FA, with age,gender,year)
+
+modelZ <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price+RP+FP+FA-1 | segment + educ + miles + region + Urb + ppark + night + age + gender + year , rpar = c(CC="n", GN = "n", NS = "n", BU = "n", LD = "n", BZ = "n", FC = "n", PP = "n", KA = "n", SC = "n", TS = "n", NV = "n", MA = "n", LB = "n", AF = "n", HU = "n", FA = "n", FP = "n", RP = "n"), panel = TRUE, data = train_train) #1.26298
+
+predmlogitX <- predict(modelZ, newdata = train_test)
 dim(predmlogitX)
 sum(predmlogitX[1,])
-N <- nrow(train_test)
+N <- nrow(predmlogitX)
 predmlogit_log <- log(predmlogitX)
-logloss <- -(sum(predmlogit_log*train_test[,15:18]))/N
+logloss <- -(sum(predmlogit_log*train_test2[,95:98]))/N
 logloss
 
 ```
@@ -256,15 +261,48 @@ logloss<- -(sum(predlogregmat1_log*train[,95:98]))/N
 logloss #1.266619
 ```
 
+### Modified Data
+```{r}
+traindata$Class <- 0
+for (i in 1:38000){
+  for (j in 15:18){
+    if (traindata[i,j] == 1){
+      traindata[i,]$Class <- colnames(traindata[j])
+    } 
+  }
+}
+#write.csv(traindata, "traindata.csv")
+
+testdata$Class <- 0
+traindata <- read.csv("traindata.csv")
+traindata$Class <- factor(traindata$Class)
+traindata$year <- factor(traindata$year)
+
+library(caTools)
+spl <- sample.split(traindata$Class, SplitRatio = 0.7)
+train_train <- subset(traindata, spl == TRUE)
+train_test <- subset(traindata, spl == FALSE)
+
+train_trainnew <- subset(train_train, select = - c(1,2,3,4,16,17,18,19,20,21,42)) # remove ch1,ch2,ch3,ch4,chid,alt columns
+
+train_testnew <- subset(train_test, select = - c(1,2,3,4,16,17,18,19,20,21,42)) # remove ch1,ch2,ch3,ch4,chid,alt columns
+```
+
 ### C5.0
 ```{r}
 #kaggle score: 1.39744
 library(C50)
-C50model1 <- C5.0(as.factor(Choice) ~ ., data = traindatanew)
+trainoftrainnewcopy <- trainoftrainnew
+trainoftrainnewcopy <- lapply(trainoftrainnewcopy, factor)
+C50model1 <- C5.0(Choice ~ ., data = trainoftrainnewcopy)
 C5imp(C50model1)
-predC50 <- predict.C5.0(C50model1, newdata = testdatanew, type = "prob")
+predC50 <- predict.C5.0(C50model1, newdata = testoftestnew, type = "prob")
 head(predC50)
-N <- nrow(test)
+N <- nrow(predC50)
+logloss<- -(sum(log(predC50)*train_testnew[,16:19]))/N
+logloss
+
+
 predC50Matrix <- matrix(predC50[,2], nrow = N, ncol = 4, byrow = TRUE)
 head(predC50Matrix)
 for (i in 1:N){
@@ -301,12 +339,21 @@ logloss
 ```{r}
 #kaggle score: 1.23523
 library(randomForest)
-rf1 <- randomForest(Choice ~ ., data = traindatanew, importance = TRUE)
+rf <- randomForest(Choice ~ ., data = trainoftrainnew, importance = TRUE)
+predrf <- predict(rf, newdata = testoftestnew, type = "prob")
+head(predrf)
+sum(predrf[1,])
+N <- nrow(predrf)
+logloss<- -(sum(log(predrf)*testoftest[,95:98]))/N
+logloss #1.210693
+
+rf1 <- randomForest(Class ~ ., data = traindatanew, importance = TRUE)
 predrf1 <- predict(rf1, newdata = testdatanew, type = "prob")
 head(predrf1)
-predrf1Matrix <- matrix(predrf1[,2], nrow = N, ncol = 4, byrow = TRUE)
-head(predrf1Matrix)
-sum(predrf1Matrix[1,])
+sum(predrf1[1,])
+#predrf1Matrix <- matrix(predrf1[,2], nrow = N, ncol = 4, byrow = TRUE)
+#head(predrf1Matrix)
+#sum(predrf1Matrix[1,])
 for (i in 1:N){
   d <- sum(predrf1Matrix[i,])
   for (j in 1:4){
@@ -323,24 +370,7 @@ write.csv(predrf1Matrix, "submissionday1_2.csv")
 ```
 
 ```{r}
-lev1 = c()
-for (i in traindata[0,]){
-  lev1 <- c(lev1, levels(i))
-}
-lev1
-lev2 = c()
-for (i in testdata[0,]){
-  lev2 <- c(lev2, levels(i))
-}
-lev2
-
-length(lev)
-levels("Price")
-
 which(!(levels(test$income) %in% levels(train$income)))
-testdata[is.na(testdata)] <- 0
-
-testdata$income <- ifelse(testdata$income == levels(testdata$income)[9], "$170,000 to $179,999", ifelse(testdata$income == levels(testdata$income)[13], "$220,000 to $229,999", ifelse(testdata$income == levels(testdata$income)[15], "$250,000 to $259,999")))
 ```
 
 ### Output
@@ -352,10 +382,10 @@ sum(predmlogitX[1,])
 write.csv(predmlogitX, "submissionDay2_2x.csv")
 ```
 
-
 #Neural networks
 ```{r}
-
+# kaggle score: 1.24106
+library(caret)
 trainNN <- (cbind(train[,4:83],train[99]))
 # trainNN$Choice <- as.character(trainNN$Choice)
 # trainNN$Choice[trainNN$Choice=="Ch1"]<-1
@@ -422,5 +452,103 @@ table(ird$species[-samp], predict(ir.nn2, ird[-samp,], type = "class"))
 # probs <- predict(model, newdata=testNN, type='prob')
 # head(probs)
 
+```
+
+###C4.5
+```{r}
+library(RWeka)
+library(FSelector)
+train <- read.csv("train.csv", stringsAsFactors = FALSE)
+train1 <- train
+train1$segment <- factor(train1$segment)
+train1$year <- factor(train1$year)
+train1$miles <- factor(train1$miles)
+train1$night <- factor(train1$night)
+train1$gender <- factor(train1$gender)
+train1$age <- factor(train1$age)
+train1$educ <- factor(train1$educ)
+train1$region <- factor(train1$region)
+train1$Urb <- factor(train1$Urb)
+train1$ppark <- factor(train1$ppark)
+train1$Choice <- factor(train1$Choice)
+train1$income <- factor(train1$income)
+train1$Price1 <- factor(train1$Price1)
+train1$Price2 <- factor(train1$Price2)
+train1$Price3 <- factor(train1$Price3)
+train1$Price4 <- factor(train1$Price4)
+
+#train1 <- convertpricetointeger(train1)
+#train1 <- convertincometointeger(train1)
+
+spl <- sample.split(train1$Choice, SplitRatio = 0.7)
+trainoftrain <- subset(train1, spl == TRUE)
+testoftest <- subset(train1, spl == FALSE)
+trainoftrainnew <- subset(trainoftrain, select = - c(1,2,3,95,96,97,98))
+testoftestnew <- subset(testoftest, select = - c(1,2,3,95,96,97,98))
+
+information.gain(Choice ~ ., data = trainoftrain)
+modelC45 <- J48(as.factor(Choice) ~ ., data = trainoftrainnew, control = Weka_control(A = TRUE, R = FALSE))
+predC45 <- predict(modelC45, newdata = testoftestnew, type = "probability")
+head(predC45, 1)
+N <- nrow(predC45)
+sum(predC45[1,])
+logloss<- -(sum(log(predC45)*testoftest[,95:98]))/N
+logloss #1.439258
+
+
+
+test <- read.csv("test.csv", stringsAsFactors = FALSE)
+test1 <- test
+test1[is.na(test1)] <- 0 # adds 0 to all missing values
+test1 <- factorise(test1)
+test1$income <- factor(test1$income)
+test1$Price1 <- factor(test1$Price1)
+test1$Price2 <- factor(test1$Price2)
+test1$Price3 <- factor(test1$Price3)
+test1$Price4 <- factor(test1$Price4)
+
+test1sub <- subset(test1, select = - c(1,2,3,95,96,97,98))
+
+train_all <- subset(train1, select = - c(1,2,3,95,96,97,98))
+
+modelC45 <- J48(Choice ~ ., data = train_all, control = Weka_control(A = TRUE, R = FALSE))
+predC45 <- predict(modelC45, newdata = test1sub, type = "probability")
+head(predC45, 1)
+N <- nrow(predC45)
+sum(predC45[1,])
+#write.csv(predC45, "submissionDay3_2.csv")
+
+##Bagging
+modelBag1 <- Bagging(Choice ~ ., data = trainoftrainnew, control = Weka_control(W = "weka.classifiers.trees.J48"))
+predBag <- predict(modelBag1, newdata = testoftestnew, type = "probability")
+head(predBag,5)
+N <- nrow(predBag)
+logloss<- -(sum(log(predBag)*testoftest[,95:98]))/N
+logloss #NaN
+
+## CostSensitiveClassifier
+csc1 <- CostSensitiveClassifier(Choice ~ ., data = train_all)
+summary(csc1)
+```
+
+###Naive Bayes
+```{r}
+library(e1071)
+nb1 <- naiveBayes(Choice ~ ., data = trainoftrainnew)
+summary(nb1)
+prednb1 <- predict(nb1, newdata = testoftestnew, type = "raw")
+head(prednb1, 1)
+N <- nrow(prednb1)
+sum(prednb1[1,])
+logloss<- -(sum(log(prednb1)*testoftest[,95:98]))/N
+logloss #1.204224
+write.csv(prednb1, "naivebayes.csv")
+```
+
+###SVM
+```{r}
+library(e1071)
+svm1 <- svm(Choice ~., data = trainoftrainnew) #Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : contrasts can be applied only to factors with 2 or more levels
+# got zeros in section 4
 ```
 
