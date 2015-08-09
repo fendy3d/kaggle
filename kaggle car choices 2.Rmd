@@ -8,7 +8,7 @@ setwd("~/Dropbox/SUTD/LECTURE NOTES/Term 8/Analytics wd/Kaggle/kaggle")
 ```{r}
 # convert all income to the middle value
 convertincometointeger <- function(train){ 
-        train$income <- ifelse(train$income == "Under $29,999", 15000, ifelse(train$income == "$30,000 to $39,999", 35000, ifelse(train$income =="$40,000 to $49,999", 45000, ifelse(train$income =="$50,000 to $59,999", 55000, ifelse(train$income =="$60,000 to $69,999", 65000, ifelse(train$income =="$70,000 to $79,999", 75000, ifelse(train$income =="$80,000 to $89,999", 85000, ifelse(train$income =="$90,000 to $99,999", 95000, ifelse(train$income =="$100,000 to $109,999", 105000, ifelse(train$income == "$110,000 to $119,999", 115000, ifelse(train$income == "$120,000 to $129,999", 125000, ifelse(train$income == "$130,000 to $139,999", 135000, ifelse(train$income == "$140,000 to $149,999", 145000, ifelse(train$income == "$150,000 to $159,999", 155000, ifelse(train$income == "$160,000 to $169,999", 165000, ifelse(train$income == "$170,000 to $179,999", 175000, ifelse(train$income == "$190,000 to $199,999", 195000, ifelse(train$income == "$200,000 to $209,999", 205000, ifelse(train$income == "$220,000 to $229,999", 225000, ifelse(train$income == "$250,000 to $259,999", 255000, ifelse(train$income == "$300,000 & Over", 320000, NA)))))))))))))))))))))
+        train$income <- ifelse(train$income == "Under $29,999", 15, ifelse(train$income == "$30,000 to $39,999", 35, ifelse(train$income =="$40,000 to $49,999", 45, ifelse(train$income =="$50,000 to $59,999", 55, ifelse(train$income =="$60,000 to $69,999", 65, ifelse(train$income =="$70,000 to $79,999", 75, ifelse(train$income =="$80,000 to $89,999", 85, ifelse(train$income =="$90,000 to $99,999", 95, ifelse(train$income =="$100,000 to $109,999", 105, ifelse(train$income == "$110,000 to $119,999", 115, ifelse(train$income == "$120,000 to $129,999", 125, ifelse(train$income == "$130,000 to $139,999", 135, ifelse(train$income == "$140,000 to $149,999", 145, ifelse(train$income == "$150,000 to $159,999", 155, ifelse(train$income == "$160,000 to $169,999", 165, ifelse(train$income == "$170,000 to $179,999", 175, ifelse(train$income == "$190,000 to $199,999", 195, ifelse(train$income == "$200,000 to $209,999", 205, ifelse(train$income == "$220,000 to $229,999", 225, ifelse(train$income == "$250,000 to $259,999", 255, ifelse(train$income == "$300,000 & Over", 320, NA)))))))))))))))))))))
         return (train)
 }
 
@@ -94,6 +94,7 @@ trainmlogit_testmlogit <- mlogit.data(trainmlogit_test, shape = "wide", choice =
 train <- read.csv("train.csv", stringsAsFactors = FALSE)
 trainmlogit <- train
 trainmlogit <- convertincome_train(trainmlogit)
+trainmlogit <- convertincometointeger(trainmlogit)
 set.seed(100)
 library(caTools)
 spl <- sample.split(trainmlogit$Choice, SplitRatio = 0.4)
@@ -152,42 +153,29 @@ model8 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-
 summary(model8)
 AIC(model8) #16631.87, LL:-8298.9, logloss: 1.548005, 1.232115 (with Price as int)
 
-model9 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train) #without FP
-summary(model9)
-AIC(model9) #16631.24, LL:-8296.6, logloss: 1.548661
-
-model10 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = traindata) #without FA
-summary(model10)
-AIC(model10) #16631.3, LL:-8296.6, logloss: 1.5486
-
-model11 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train) #without RP
-summary(model11)
-AIC(model11) #16633.07, LL:-8297.5, logloss: 1.548446
-
-model12 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train) #without FP, FA
-summary(model12)
-AIC(model12) #16630.52, LL:--8297.3, logloss: 1.548433
-
-model13 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train) #without FP, RP
-summary(model13)
-AIC(model13) #16632.32, LL:-8298.2, logloss: 1.548278
-
-model14 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+FP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train) #without FA, RP
-summary(model14)
-AIC(model14) #16632.49, LL:-8298.2, logloss: 1.548186
 
 model17 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+I(Price/income)-1, data = train_train)
 summary(model17)
 AIC(model17) #17923.54, LL: -8944.8, logloss: 1.438956 #kaggle score: 1.44686
 
-model7 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | income + segment + educ + age + region + Urb + ppark + gender , data = trainmlogit_trainrandmlogit)
-predmlogitX <- predict(model7, newdata = trainmlogit_testrandmlogit)
--(sum(log(predmlogitX)*trainmlogit_testrand[,95:98]))/nrow(predmlogitX)
+#model7 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | income + segment + educ + age + region + Urb + ppark + gender , #data = trainmlogit_trainrandmlogit)
+#predmlogitX <- predict(model7, newdata = trainmlogit_testrandmlogit)
+#-(sum(log(predmlogitX)*trainmlogit_testrand[,95:98]))/nrow(predmlogitX)
 #BU+FA+BZ+FC+FP+AF+HU+Price
 
+train_raw <- read.csv("train.csv")
+test_raw <- read.csv("test.csv")
+S <- mlogit.data(train_raw,shape="wide",choice="Choice",varying=c(4:83), sep="", alt.levels=c("Ch1","Ch2","Ch3","Ch4"), id.var="Case")
+test_mlogit <- mlogit.data(test_raw,shape="wide",choice="Choice",varying=c(4:83), sep="", alt.levels=c("Ch1","Ch2","Ch3","Ch4"), id.var="Case")
+test_mlogit[is.na(test_mlogit)] <- 100
+
+M <- mlogit(Choice~CC+I(GN/income)+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price|segment+miles+ppark+region+Urb+age, data=trainmlogit_trainrandmlogit)
+predmlogitX <- predict(M, newdata = trainmlogit_testrandmlogit)
+-(sum(log(predmlogitX)*trainmlogit_testrand[,95:98]))/nrow(predmlogitX)
+#P <- predict(M,newdata=test_mlogit)
 #FA1+BZ1+FC1+FP1+HU1+Price1+AF1+BU1+  income + segment + miles + age + region + Urb + ppark
-modelX <- mlogit(Choice ~ GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + miles + region + Urb + ppark, data = trainmlogit_trainrandmlogit)
-predmlogitX <- predict(modelX, newdata = trainmlogit_testrandmlogit)
+modelX <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + miles + region + Urb + ppark + age, data = trainmlogit_trainrandmlogit)
+predmlogitX <- predict(M, newdata = trainmlogit_testrandmlogit)
 -(sum(log(predmlogitX)*trainmlogit_testrand[,95:98]))/nrow(predmlogitX)
 
 summary(modelX)
