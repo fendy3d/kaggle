@@ -13,7 +13,7 @@ S <- mlogit.data(train_raw,shape="wide",choice="Choice",varying=c(4:83), sep="",
 test_mlogit <- mlogit.data(test_raw,shape="wide",choice="Choice",varying=c(4:83), sep="", alt.levels=c("Ch1","Ch2","Ch3","Ch4"), id.var="Case")
 test_mlogit[is.na(test_mlogit)] <- 100
 
-M <- mlogit(Choice~+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price|segment+miles+ppark+age+Urb+region, data=S)
+M <- mlogit(Choice~CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1|segment+miles+ppark+age, data=S)
 # M <- mlogit(Choice~CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data=S)
 P <- predict(M,newdata=test_mlogit)
 # subset(test_mlogit,select=c(CC,GN,NS,BU,FA,LD,BZ,FC,FP,RP,PP,KA,SC,TS,NV,MA,LB,AF,HU,Price))
