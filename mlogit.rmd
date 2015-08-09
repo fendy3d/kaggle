@@ -1,0 +1,206 @@
+---
+title: "kaggle_car choices"
+output: html_document
+---
+setwd("/Users/fendylieanata/Dropbox/ESD_Term 8/40.220 Analytics Edge/kaggle")
+setwd("~/Dropbox/SUTD/LECTURE NOTES/Term 8/Analytics wd/Kaggle/kaggle")
+## Functions
+```{r}
+# convert all income to the middle value
+convertincometointeger <- function(train){ 
+        train$income <- ifelse(train$income == "Under $29,999", 15000, ifelse(train$income == "$30,000 to $39,999", 35000, ifelse(train$income =="$40,000 to $49,999", 45000, ifelse(train$income =="$50,000 to $59,999", 55000, ifelse(train$income =="$60,000 to $69,999", 65000, ifelse(train$income =="$70,000 to $79,999", 75000, ifelse(train$income =="$80,000 to $89,999", 85000, ifelse(train$income =="$90,000 to $99,999", 95000, ifelse(train$income =="$100,000 to $109,999", 105000, ifelse(train$income == "$110,000 to $119,999", 115000, ifelse(train$income == "$120,000 to $129,999", 125000, ifelse(train$income == "$130,000 to $139,999", 135000, ifelse(train$income == "$140,000 to $149,999", 145000, ifelse(train$income == "$150,000 to $159,999", 155000, ifelse(train$income == "$160,000 to $169,999", 165000, ifelse(train$income == "$170,000 to $179,999", 175000, ifelse(train$income == "$190,000 to $199,999", 195000, ifelse(train$income == "$200,000 to $209,999", 205000, ifelse(train$income == "$220,000 to $229,999", 225000, ifelse(train$income == "$250,000 to $259,999", 255000, ifelse(train$income == "$300,000 & Over", 320000, NA)))))))))))))))))))))
+        return (train)
+}
+
+# convertpricetointeger <- function(train){ 
+#         train <- ifelse(train == 1, 500, ifelse(train == 2, 1000, ifelse(train ==3, 1500, ifelse(train == 4, 2000, ifelse(train == 5, 2500, ifelse(train == 6, 3000, ifelse(train == 7, 4000, ifelse(train == 8, 5000, ifelse(train == 9, 7500, ifelse(train == 10, 10000, ifelse(train == 11, 12000, 1)))))))))))
+#         return (train)
+# }
+
+# manage inconsistencies in income (only for training)
+convertincome_train <- function(object){
+        N <- nrow(object)
+        for (i in 1:N){
+                if (object[i,93] == "$290,000 to $299,999"){
+                        object[i,93] <- as.character("$300,000 & Over")
+                        print ("converted!")
+                        }
+                }
+        return (object)
+}
+
+# manage inconsistencies in income (only for test)
+convertincome_test <- function(object){
+        N <- nrow(object)
+        for (i in 1:N){
+          if (object[i,93] == "$180,000 to $189,999"){
+            object[i,93] <- as.character("$170,000 to $179,999")
+            print ("converted!")
+          } else {
+            if (object[i,93] == "$230,000 to $239,999"){
+              object[i,93] <- "$220,000 to $229,999"
+              print ("converted!")
+            } else {
+              if (object[i,93] == "$270,000 to $279,999"){
+                object[i,93] <- ("$250,000 to $259,999")
+                print ("converted")
+              }
+            }
+          }
+        }
+        return (object)
+}
+
+# factorise the variables (segment, year .. ppark)
+factorise <- function(train){
+        train$segment <- factor(train$segment)
+        train$year <- factor(train$year)
+        train$miles <- factor(train$miles)
+        train$night <- factor(train$night)
+        train$gender <- factor(train$gender)
+        train$age <- factor(train$age)
+        train$educ <- factor(train$educ)
+        train$region <- factor(train$region)
+        train$Urb <- factor(train$Urb)
+        train$ppark <- factor(train$ppark)
+        return (train)
+}
+
+```
+
+
+# Preparing Training sets
+```{r}
+train_raw <- read.csv("train.csv", stringsAsFactors = FALSE)
+train <- subset(train_raw, select=-c(93)) # remove 'income' column
+set.seed(100)
+library(caTools)
+library(mlogit)
+spl <- sample.split(train$Choice, SplitRatio = 0.7)
+train_train <- subset(train, spl == TRUE) # 'long' subsetted data 
+train_test <- subset(train, spl == FALSE) # 'long' subsetted data
+
+
+train_train_task_mlogit <- mlogit.data(train_train_task, shape = "wide", choice = "Task", varying = c(4:83), sep = "", alt.levels = c(1:19), id.var = "Case")
+
+train_train_mlogit <- mlogit.data(train_train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+train_test_mlogit <- mlogit.data(train_test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+
+```
+
+### Preparing Test sets
+```{r}
+test_raw <- read.csv("test.csv", stringsAsFactors = FALSE)
+test <- subset(test_raw, select=-c(93)) # remove 'income' column
+test_mlogit <- mlogit.data(test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+```
+
+#mlogit modelling
+```{r}
+model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = train_train_mlogit)
+summary(model1) # logloss = 1.23664. all variables
+
+predmlogit1 <- predict(model1, newdata = train_test_mlogit)
+N <- nrow(predmlogit1)
+logloss <- -(sum(log(predmlogitX)*train_test[,94:97]))/N
+logloss
+```
+
+# Guanhua
+```{r}
+library(mlogit)
+train <- read.csv("train.csv", stringsAsFactors = FALSE)
+trainmlogit <- train
+trainmlogit <- convertincome_train(trainmlogit)
+
+trainmlogit_mlogit <- mlogit.data(trainmlogit, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+trainmlogit_train <- subset(trainmlogit, Task<=13)
+trainmlogit_test <- subset(trainmlogit, Task>13)
+
+trainmlogit_trainmlogit <- mlogit.data(trainmlogit_train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+trainmlogit_testmlogit <- mlogit.data(trainmlogit_test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+# CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price
+N <- nrow(predmlogitX)
+
+
+modelX <- mlogit(Choice ~ Price+FA+RP+FC+PP+HU+SC+NV+GN+FP+LB+TS+BZ+LD+NS+MA| income + segment + miles + educ + age + region + Urb + ppark + night + gender, data = trainmlogit_trainmlogit)
+predmlogitX <- predict(modelX, newdata = trainmlogit_testmlogit)
+-(sum(log(predmlogitX)*trainmlogit_test[,95:98]))/N
+
+
+
+beep()
+```
+
+
+```{r}
+train_raw <- read.csv("train.csv")
+test_raw <- read.csv("test.csv")
+
+summary(M)
+| income + segment + miles + educ + age + region + Urb + ppark + night + gender
+segment+year+miles+night+gender+age+educ+region+Urb+income+ppark
+for (i in 18){
+        print(paste("i: ",i))
+        # using model = M
+        S <- mlogit.data(subset(train_raw,Task<=i),shape="wide",choice="Choice",varying=c(4:83), sep="", alt.levels=c("Ch1","Ch2","Ch3","Ch4"), id.var="Case")
+        M <- mlogit(Choice~CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1|segment+miles+income+ppark+age, data=S)
+        
+        ActualChoice_train <- subset(train_raw,Task<=i)[,c(95:98)] # this is the true output of train_train
+        P <- predict(M,newdata=S) # this is the predicted output from the input of train_train
+        N <- nrow(P)
+        print(-(sum(log(P)*ActualChoice_train))/N) #logloss = 1.269
+        
+        Test <- mlogit.data(subset(train_raw,Task>i),shape="wide",choice="Choice",varying=c(4:83), sep="", alt.levels=c("Ch1","Ch2","Ch3","Ch4"), id.var="Case")
+        TestPredict<- predict(M,newdata=Test)
+        ActualChoice_test<- subset(train_raw,Task>i)[,c(95:98)]
+        N <- nrow(TestPredict)
+        print(-(sum(log(TestPredict)*ActualChoice_test))/N) # 1.2242
+        
+        # using model = modelY
+        modelY <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + miles + age + region + Urb + ppark, data = S)
+        P <- predict(modelY,newdata=Test)
+        N <- nrow(P)
+        print(-(sum(log(P)*ActualChoice_test))/N) #logloss = 1.269
+        print ('-------------')
+}
+
+
+train_raw <- read.csv("train.csv")
+test_raw <- read.csv("test.csv")
+S <- mlogit.data(train_raw,shape="wide",choice="Choice",varying=c(4:83), sep="", alt.levels=c("Ch1","Ch2","Ch3","Ch4"), id.var="Case")
+test_mlogit <- mlogit.data(test_raw,shape="wide",choice="Choice",varying=c(4:83), sep="", alt.levels=c("Ch1","Ch2","Ch3","Ch4"), id.var="Case")
+test_mlogit[is.na(test_mlogit)] <- 100
+
+M <- mlogit(Choice~CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1|segment+miles+ppark+age, data=S)
+# M <- mlogit(Choice~CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data=S)
+P <- predict(M,newdata=test_mlogit)
+# subset(test_mlogit,select=c(CC,GN,NS,BU,FA,LD,BZ,FC,FP,RP,PP,KA,SC,TS,NV,MA,LB,AF,HU,Price))
+write.csv(P,file="mlogit-fendy.csv",row.names=FALSE,sep=",")
+
+modelY <- mlogit(Choice ~ GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + miles + age + region + Urb + ppark, data = trainmlogit_mlogit)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
