@@ -83,18 +83,28 @@ library(mlogit)
 train <- read.csv("train.csv", stringsAsFactors = FALSE)
 trainmlogit <- train
 trainmlogit <- convertincome_train(trainmlogit)
-set.seed(100)
-library(caTools)
-spl <- sample.split(trainmlogit$Choice, SplitRatio = 0.7)
-trainmlogit_train <- subset(trainmlogit, spl == TRUE)
-trainmlogit_test <- subset(trainmlogit, spl == FALSE)
 
-trainmlogit_mlogit <- mlogit.data(trainmlogit, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+trainmlogit_train <- subset(trainmlogit, Task<=8)
+trainmlogit_test <- subset(trainmlogit, Task>8)
 
 trainmlogit_trainmlogit <- mlogit.data(trainmlogit_train, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
 
 trainmlogit_testmlogit <- mlogit.data(trainmlogit_test, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
 
+train <- read.csv("train.csv", stringsAsFactors = FALSE)
+trainmlogit <- train
+trainmlogit <- convertincome_train(trainmlogit)
+set.seed(100)
+library(caTools)
+spl <- sample.split(trainmlogit$Choice, SplitRatio = 0.4)
+trainmlogit_trainrand <- subset(trainmlogit, spl==TRUE)
+trainmlogit_testrand <- subset(trainmlogit, spl==FALSE)
+
+trainmlogit_trainrandmlogit <- mlogit.data(trainmlogit_trainrand, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+trainmlogit_testrandmlogit <- mlogit.data(trainmlogit_testrand, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+
+trainmlogit_mlogit <- mlogit.data(trainmlogit, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
 
 ```
 
@@ -103,13 +113,13 @@ trainmlogit_testmlogit <- mlogit.data(trainmlogit_test, shape = "wide", choice =
 test <- read.csv("test.csv", stringsAsFactors = FALSE)
 test1 <- test
 test1[is.na(test1)] <- 0 # adds 0 to all missing values
-test1 <- convertincometointeger(convertincome_test(test1))
-test1 <- factorise(test1)
-test1$Price1 <- convertpricetointeger(test1$Price1)
-test1$Price2 <- convertpricetointeger(test1$Price2)
-test1$Price3 <- convertpricetointeger(test1$Price3)
-test1$Price4 <- convertpricetointeger(test1$Price4)
-test1$Choice <- factor(test1$Choice)
+#test1 <- convertincometointeger(convertincome_test(test1))
+#test1 <- factorise(test1)
+#test1$Price1 <- convertpricetointeger(test1$Price1)
+#test1$Price2 <- convertpricetointeger(test1$Price2)
+#test1$Price3 <- convertpricetointeger(test1$Price3)
+#test1$Price4 <- convertpricetointeger(test1$Price4)
+#test1$Choice <- factor(test1$Choice)
 
 #mlogit
 test <- read.csv("test.csv", stringsAsFactors = FALSE)
@@ -126,31 +136,15 @@ testmlogit_mlogit <- mlogit.data(testmlogit, shape = "wide", choice = "Choice", 
 ### Mlogit
 ```{r}
 # initialise everything
-model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data = traindata)
+model1 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU | income + segment + miles + educ + age + region + Urb + ppark + night , data = trainmlogit_trainmlogit)
 summary(model1)
-AIC(model1) #16632.11, LL: -8296.1, logloss: 1.296198
-
-model2 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch1", data = train_train)
-summary(model2)
-AIC(model2) #16138.74, LL: -8046.4, logloss: 1.318158
-
-model3 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch2", data = train_train)
-summary(model3)
-AIC(model3) #16138.74, LL: -8046.4, logloss: 1.318158
-
-model4 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch3", data = train_train)
-summary(model4)
-AIC(model4) #16138.74, LL: -8046.4, logloss: 1.318158
-
-model5 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, reflevel = "Ch4", data = train_train)
-summary(model5)
-AIC(model5) #16138.74, LL: -8046.4, logloss: 1.318158
+AIC(model1) #16632.11, LL: -8296.1, logloss: 1.296198 
 
 model6 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price, data = traindata)
 summary(model6)
 AIC(model6) #16138.74, LL: -8046.4, logloss: 1.318158
 
-model7 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + educ + miles + age + Urb + ppark + night + gender, data = traindata)
+model7 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | income + segment + educ + miles + age + Urb + ppark + night + gender, data = trainmlogit_trainmlogit)
 summary(model7)
 AIC(model7) #15705.3, LL: -7685.7, logloss: 1.179093 (with Price as int) #kaggle score: 1.23575 #write.csv(predmlogit1, "submissionDay2_1.csv")
 
@@ -182,36 +176,33 @@ model14 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+FP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Pr
 summary(model14)
 AIC(model14) #16632.49, LL:-8298.2, logloss: 1.548186
 
-model15 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+I(Price/income)-1 | segment + educ + miles + age + region + Urb + ppark + night + gender + year, data = train_train)
-summary(model15)
-AIC(model15) #16807.14, LL:-8236.6, logloss: 1.572323
-
-model16 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+I(Price/income)-1, data = train_train)
-summary(model16)
-AIC(model16) #17923.94, LL: -8942, logloss: 1.438996
-
 model17 <- mlogit(Choice ~ CC+GN+NS+BU+LD+BZ+FC+PP+KA+SC+TS+NV+MA+LB+AF+HU+I(Price/income)-1, data = train_train)
 summary(model17)
 AIC(model17) #17923.54, LL: -8944.8, logloss: 1.438956 #kaggle score: 1.44686
 
-modelX <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU + Price -1| income + segment+ educ+ Urb+ miles + age + ppark+ region, data = trainmlogit_trainmlogit)
+model7 <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | income + segment + educ + age + region + Urb + ppark + gender , data = trainmlogit_trainrandmlogit)
+predmlogitX <- predict(model7, newdata = trainmlogit_testrandmlogit)
+-(sum(log(predmlogitX)*trainmlogit_testrand[,95:98]))/nrow(predmlogitX)
+#BU+FA+BZ+FC+FP+AF+HU+Price
+
+#FA1+BZ1+FC1+FP1+HU1+Price1+AF1+BU1+  income + segment + miles + age + region + Urb + ppark
+modelX <- mlogit(Choice ~ GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + miles + region + Urb + ppark, data = trainmlogit_trainrandmlogit)
+predmlogitX <- predict(modelX, newdata = trainmlogit_testrandmlogit)
+-(sum(log(predmlogitX)*trainmlogit_testrand[,95:98]))/nrow(predmlogitX)
+
 summary(modelX)
 AIC(modelX)
-  
-predmlogitX <- predict(modelX, newdata = trainmlogit_testmlogit)
+#CC+NS+BU+LD+PP+KA+SC+TS+MA+Price
+
 dim(predmlogitX)
 sum(predmlogitX[1,])
-N <- nrow(predmlogitX)
-logloss <- -(sum(log(predmlogitX)*trainmlogit_test[,95:98]))/N
-logloss
+#submission9: modelY <- mnlogit(Choice ~ CC+BU+KA+SC+TS+Price | income + segment + miles + educ + age + region + Urb + ppark + night + gender, ncores = 2, data = trainmlogit_mlogit)
+#submission10: modelY <- mlogit(Choice ~ CC+GN+NS+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+HU+Price | income + segment + miles + age + region + Urb + ppark, data = trainmlogit_mlogit)
 
-
-
-
-modelY <- mlogit(Choice ~ CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU + Price -1| income + segment+ educ+ Urb+ miles + age + ppark+ region, data = trainmlogit_mlogit)
+modelY <- mlogit(Choice ~ GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price | segment + miles + age + region + Urb + ppark, data = trainmlogit_mlogit)
 predmodelY <- predict(modelY, newdata = testmlogit_mlogit)
-head(predmodelY,20)
-write.csv(predmodelY, "bestmlogit.csv")
+head(predmodelY,38)
+write.csv(predmodelY, "bestmlogit3.csv")
 ```
 
 ### Logistic Regression
@@ -267,9 +258,8 @@ train_testnew <- subset(train_test, select = - c(1,2,3,4,16,17,18,19,20,21,42)) 
 ```{r}
 #kaggle score: 1.39744
 library(C50)
-trainoftrainnewcopy <- trainoftrainnew
-trainoftrainnewcopy <- lapply(trainoftrainnewcopy, factor)
-C50model1 <- C5.0(Choice ~ ., data = trainoftrainnewcopy)
+trainmlogit_mlogit1 <- subset(trainmlogit_mlogit, )
+C50model1 <- C5.0(as.factor(Choice) ~ ., data = trainmlogit_mlogit)
 C5imp(C50model1)
 predC50 <- predict.C5.0(C50model1, newdata = testoftestnew, type = "prob")
 head(predC50)
@@ -611,8 +601,56 @@ N <- nrow(prednb1)
 sum(prednb1[1,])
 logloss<- -(sum(log(prednb1)*trainoftest8[,95:98]))/N
 logloss
-
 #write.csv(prednb1, "naivebayes3.csv")
+
+train <- read.csv("train.csv", stringsAsFactors = FALSE)
+trainnb <- train
+trainnb <- convertincome_train(trainnb)
+
+trainnb_train <- subset(trainnb, Task<=5)
+trainnb_test <- subset(trainnb, Task>5)
+
+set.seed(100)
+library(caTools)
+spl <- sample.split(trainnb, SplitRatio = 0.5)
+trainnb_trainrand <- subset(trainnb, spl==TRUE)
+trainnb_testrand <- subset(trainnb, spl==FALSE)
+
+trainnb_trainsub <- subset(trainnb_train, select = - c(1,2,3,95:98)) # remove ch1,ch2,ch3,ch4 columns
+trainnb_testsub <- subset(trainnb_test, select = - c(1,2,3,95:98))
+
+x <- as.data.frame(lapply(trainnb_trainsub[,1:90],factor))
+y <- trainnb_trainsub[,92]
+#GN+NS+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+HU+AF+BU+Price | income + segment + educ + age + region + Urb + ppark + gender
+nb2 <- naiveBayes(Choice ~ 
+                    GN1+NS1+FA1+LD1+BZ1+FC1+FP1+RP1+PP1+SC1+TS1+NV1+MA1+LB1+HU1+AF1+BU1+Price1+
+                    GN2+NS2+FA2+LD2+BZ2+FC2+FP2+RP2+PP2+SC2+TS2+NV2+MA2+LB2+HU2+AF2+BU2+Price2+
+                    GN3+NS3+FA3+LD3+BZ3+FC3+FP3+RP3+PP3+SC3+TS3+NV3+MA3+LB3+HU3+AF3+BU3+Price3+
+                    income + segment + miles + age + region + Urb + ppark
+                  , data = as.data.frame(lapply(trainnb_trainrand, factor)))
+prednb2 <- predict(nb2, newdata = as.data.frame(lapply(trainnb_testrand, factor)), type = "raw")
+-(sum(log(prednb2)*trainnb_testrand[,95:98]))/nrow(prednb2)
+
+#8:                     FA1+BZ1+FC1+FP1+HU1+Price1+AF1+BU1+
+
+trainnb_mlogit <- mlogit.data(as.data.frame(lapply(trainnb, factor)), shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
+trainnb_mlogitsub <- subset(trainnb_mlogit, select = -c(1,2,3,15:18,20,41))
+
+#subs1 <- regsubsets(as.factor(Choice)~., trainnb_mlogitsub, nvmax = 31, really.big = TRUE, method = "exhaustive")
+
+#Choice ~ 
+#                    CC1+GN1+NS1+FA1+LD1+BZ1+FC1+FP1+RP1+PP1+KA1+SC1+TS1+NV1+MA1+LB1+HU1+AF1+BU1+Price1+
+#                    CC2+GN2+NS2+FA2+LD2+BZ2+FC2+FP2+RP2+PP2+KA2+SC2+TS2+NV2+MA2+LB2+HU2+AF2+BU2+Price2+
+#                    CC3+GN3+NS3+FA3+LD3+BZ3+FC3+FP3+RP3+PP3+KA3+SC3+TS3+NV3+MA3+LB3+HU3+AF3+BU3+Price3+
+#                    income + segment + miles + age + region + Urb + ppark + year
+nbY <- naiveBayes(Choice ~ 
+                    GN1+NS1+FA1+LD1+BZ1+FC1+FP1+RP1+PP1+SC1+TS1+NV1+MA1+LB1+HU1+AF1+BU1+Price1+
+                    GN2+NS2+FA2+LD2+BZ2+FC2+FP2+RP2+PP2+SC2+TS2+NV2+MA2+LB2+HU2+AF2+BU2+Price2+
+                    GN3+NS3+FA3+LD3+BZ3+FC3+FP3+RP3+PP3+SC3+TS3+NV3+MA3+LB3+HU3+AF3+BU3+Price3+
+                    segment + miles + age + region + Urb + ppark
+                  , data = trainnb)
+predbnY <- predict(nbY, newdata = test, type = "raw")
+write.csv(predbnY, "bestbn.csv")
 ```
 
 ###SVM

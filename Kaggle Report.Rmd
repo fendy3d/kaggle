@@ -1,0 +1,60 @@
+---
+title: "Report: Predict Car Features"
+output: html_document
+---
+
+Main models
+---
+### Mlogit: Kaggle Score 1.18934
+```{r}
+train_raw <- read.csv("train.csv")
+test_raw <- read.csv("test.csv")
+S <- mlogit.data(train_raw,shape="wide",choice="Choice",varying=c(4:83), sep="", alt.levels=c("Ch1","Ch2","Ch3","Ch4"), id.var="Case")
+test_mlogit <- mlogit.data(test_raw,shape="wide",choice="Choice",varying=c(4:83), sep="", alt.levels=c("Ch1","Ch2","Ch3","Ch4"), id.var="Case")
+test_mlogit[is.na(test_mlogit)] <- 100
+
+M <- mlogit(Choice~CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1|segment+miles+ppark+age, data=S)
+# M <- mlogit(Choice~CC+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price-1, data=S)
+P <- predict(M,newdata=test_mlogit)
+# subset(test_mlogit,select=c(CC,GN,NS,BU,FA,LD,BZ,FC,FP,RP,PP,KA,SC,TS,NV,MA,LB,AF,HU,Price))
+write.csv(P,file="mlogit-fendy.csv",row.names=FALSE,sep=",")
+```
+
+Other Attempted Models
+---
+### Neutral Network
+```{r}
+
+```
+
+### Random Forest
+```{r}
+rf <- randomForest(Choice ~ ., data = train_allnew, importance = TRUE, ntree = 2000)
+
+```
+
+### Naive Bayes
+```{r}
+nb2 <- naiveBayes(Choice ~ 
+                    GN1+NS1+FA1+LD1+BZ1+FC1+FP1+RP1+PP1+SC1+TS1+NV1+MA1+LB1+HU1+AF1+BU1+Price1+
+                    GN2+NS2+FA2+LD2+BZ2+FC2+FP2+RP2+PP2+SC2+TS2+NV2+MA2+LB2+HU2+AF2+BU2+Price2+
+                    GN3+NS3+FA3+LD3+BZ3+FC3+FP3+RP3+PP3+SC3+TS3+NV3+MA3+LB3+HU3+AF3+BU3+Price3+
+                    income + segment + miles + age + region + Urb + ppark
+                  , data = as.data.frame(lapply(trainnb_trainrand, factor)))
+```
+
+### SVM
+```{r}
+
+```
+
+### C4.5
+```{r}
+
+```
+
+### C5.0
+```{r}
+
+```
+
