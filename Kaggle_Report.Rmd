@@ -6,6 +6,7 @@ output: html_document
 Main Code
 ---
 ```{r}
+# Mlogit
 train_raw <- read.csv("train.csv")
 test_raw <- read.csv("test.csv")
 S <- mlogit.data(train_raw,shape="wide",choice="Choice",varying=c(4:83), sep="", alt.levels=c("Ch1","Ch2","Ch3","Ch4"), id.var="Case")
@@ -17,5 +18,20 @@ M <- mlogit(Choice~+GN+NS+BU+FA+LD+BZ+FC+FP+RP+PP+KA+SC+TS+NV+MA+LB+AF+HU+Price|
 P <- predict(M,newdata=test_mlogit)
 # subset(test_mlogit,select=c(CC,GN,NS,BU,FA,LD,BZ,FC,FP,RP,PP,KA,SC,TS,NV,MA,LB,AF,HU,Price))
 write.csv(P,file="mlogit-fendy.csv",row.names=FALSE,sep=",")
+```
+
+
+```{r}
+# Neural networks
+library(caret)
+trainNN <- train[,c(4:83,98)]
+testNN <- test[,4:83]
+set.seed(100)
+modelNN <- neuralnet(Choice~CC1+GN1+NS1+BU1+LD1+BZ1+FC1+PP1+KA1+SC1+TS1+NV1+MA1+LB1+AF1+HU1+Price1+
+                            CC2+GN2+NS2+BU2+LD2+BZ2+FC2+PP2+KA2+SC2+TS2+NV2+MA2+LB2+AF2+HU2+Price2+
+                            CC3+GN3+NS3+BU3+LD3+BZ3+FC3+PP3+KA3+SC3+TS3+NV3+MA3+LB3+AF3+HU3+Price3+
+                            CC4+GN4+NS4+BU4+LD4+BZ4+FC4+PP4+KA4+SC4+TS4+NV4+MA4+LB4+AF4+HU4+Price4,data=trainNN, hidden=9)
+probs1 <- predict(modelNN, newdata=testNN, type='prob')
+write.table(probs1,file="nn.csv",sep=",",row.names=FALSE)
 ```
 

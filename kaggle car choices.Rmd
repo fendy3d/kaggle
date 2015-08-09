@@ -87,8 +87,8 @@ trainmlogit <- convertincome_train(trainmlogit)
 set.seed(100)
 library(caTools)
 spl <- sample.split(trainmlogit$Choice, SplitRatio = 0.7)
-trainmlogit_train <- subset(trainmlogit, spl == TRUE)
-trainmlogit_test <- subset(trainmlogit, spl == FALSE)
+trainmlogit_train <- subset(trainmlogit, spl == TRUE) # 'long' subsetted data 
+trainmlogit_test <- subset(trainmlogit, spl == FALSE) # 'long' subsetted data
 
 trainmlogit_mlogit <- mlogit.data(trainmlogit, shape = "wide", choice = "Choice", varying = c(4:83), sep = "", alt.levels = c("Ch1","Ch2","Ch3","Ch4"), id.var = "Case")
 
@@ -366,7 +366,7 @@ write.csv(predmlogitX, "submissionDay2_2x.csv")
 ```{r}
 # kaggle score: 1.24106
 library(caret)
-trainNN <- (cbind(train[,4:83],train[99]))
+trainNN <- train[,c(4:83,98)]
 # trainNN$Choice <- as.character(trainNN$Choice)
 # trainNN$Choice[trainNN$Choice=="Ch1"]<-1
 # trainNN$Choice[trainNN$Choice=="Ch2"]<-2
@@ -375,9 +375,13 @@ trainNN <- (cbind(train[,4:83],train[99]))
 # trainNN$Choice <- as.integer(trainNN$Choice)
 testNN <- test[,4:83]
 set.seed(100)
-model <- train(Choice~., data=trainNN, method='nnet',trControl=trainControl(method='cv'))
-model
-probs1 <- predict(model, newdata=testNN, type='prob')
+# modelNN <- train(Choice~., data=trainNN, method='nnet',trControl=trainControl(method='cv'))
+modelNN <- neuralnet(Choice~CC1+GN1+NS1+BU1+LD1+BZ1+FC1+PP1+KA1+SC1+TS1+NV1+MA1+LB1+AF1+HU1+Price1+
+                            CC2+GN2+NS2+BU2+LD2+BZ2+FC2+PP2+KA2+SC2+TS2+NV2+MA2+LB2+AF2+HU2+Price2+
+                            CC3+GN3+NS3+BU3+LD3+BZ3+FC3+PP3+KA3+SC3+TS3+NV3+MA3+LB3+AF3+HU3+Price3+
+                            CC4+GN4+NS4+BU4+LD4+BZ4+FC4+PP4+KA4+SC4+TS4+NV4+MA4+LB4+AF4+HU4+Price4,data=trainNN, hidden=1)
+modelNN
+probs1 <- predict(modelNN, newdata=testNN, type='prob')
 # compute(model, testNN)$model.result
 head(probs1)
 write.table(probs,file="nn.csv",sep=",",row.names=FALSE)
